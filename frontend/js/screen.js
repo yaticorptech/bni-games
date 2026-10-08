@@ -38,6 +38,8 @@ let liveHideTimer = 0;
 let drawing = false;
 
 const gameById = (id) => games.find((g) => g.id === id);
+// Columns on the board: the games people play on their phones. Hosted moments (Live Quiz) still count in totals, but get no chip.
+const chipGames = () => games.filter((g) => !g.hosted);
 const setMode = (mode) => (document.body.dataset.mode = mode);
 const avatar = (e) => initials(e.name); // behind the photo; seen only when a guest has none
 const withEmoji = (e) => esc(e.name);
@@ -96,8 +98,9 @@ function updateRow(r, e) {
     : esc(sub);
   el.classList.toggle('playing', Boolean(liveGame));
   const chips = el.querySelector('.chips');
-  chips.classList.toggle('many', games.length > 6);
-  chips.innerHTML = games
+  const cols = chipGames();
+  chips.classList.toggle('many', cols.length > 6);
+  chips.innerHTML = cols
     .map((g) => {
       const v = e.scores[g.id];
       const isLive = Boolean(e.live && e.live.gameId === g.id);
@@ -729,8 +732,8 @@ async function boot() {
   $('#join-url').textContent = st.joinUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const qr = apiUrl(`/api/qr.svg?t=${Date.now()}`);
   document.querySelectorAll('img.qr').forEach((img) => (img.src = qr));
-  $('#games-head').innerHTML = games.map((g) => `<span title="${esc(g.name)}">${g.emoji}</span>`).join('');
-  $('#games-head').classList.toggle('many', games.length > 6);
+  $('#games-head').innerHTML = chipGames().map((g) => `<span title="${esc(g.name)}">${g.emoji}</span>`).join('');
+  $('#games-head').classList.toggle('many', chipGames().length > 6);
 
   const socket = connectSocket({ role: 'screen' });
   socket.on('connect', () => {
