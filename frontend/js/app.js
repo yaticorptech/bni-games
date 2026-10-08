@@ -114,8 +114,7 @@ function renderJoin() {
       ${fields}
       <button class="btn btn-primary btn-lg" type="submit">${byPhone ? 'Log in →' : 'Let’s play →'}</button>
       <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.length} quick games · your best score in each counts · watch the big screen!</p>
-    </form>
-    <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
+    </form>`;
 
   const form = $('#join-form');
   form.addEventListener('submit', async (e) => {
@@ -212,8 +211,7 @@ function renderHub() {
     <section class="games">${S.games.filter((g) => !g.hosted).map(gameCardHtml).join('')}</section>
     <section class="card mini-board" id="mini-board">${miniBoardHtml()}</section>
     <footer class="hub-foot">Playing as <b>${esc(me.player.name)}</b>${me.player.business ? ` · ${esc(me.player.business)}` : ''}<br>
-      <button class="link" id="switch-btn">Not you? Switch player</button></footer>
-    <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
+      <button class="link" id="switch-btn">Not you? Switch player</button></footer>`;
 
   $('#view-hub').querySelectorAll('.game-card').forEach((el) => el.addEventListener('click', () => openGame(el.dataset.game)));
   $('#mute-btn').onclick = (e) => {

@@ -145,6 +145,8 @@ Using a custom domain for the frontend? Use it as `PUBLIC_URL`, and list any oth
 
 ## Branding
 
+Every screen (phones, big screen, Admin) carries both logos in the top corners: **BNI Inspire** on the left (`frontend/img/brand/bni-inspire.png`) and **Yaticorp** on the right (`frontend/img/brand/yaticorp-white.png`). Swap the files to rebrand.
+
 The platform carries Yaticorp branding: the wordmark (`frontend/img/brand/yaticorp-white.png`) appears as "Powered by" on the big screen, the phone join/home screens and Admin, and the blue mark is the tab/home-screen icon (`mark.png`, `icon-512.png`). The brand blue is `--brand` in the stylesheets. Event-specific text (title, tagline) stays editable in Admin.
 
 ## Fair play

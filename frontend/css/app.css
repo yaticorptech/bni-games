@@ -45,11 +45,27 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 .fine { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0; }
 .eyebrow { color: var(--gold); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 
+/* Event + partner logos in the top corners of every screen (sticky, so games and the hub sit below it). */
+:root { --brandbar: calc(max(8px, env(safe-area-inset-top)) + 47px); }
+.brandbar {
+  position: sticky; top: 0; z-index: 30;
+  height: var(--brandbar);
+  box-sizing: border-box;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: max(8px, env(safe-area-inset-top)) 14px 8px;
+  background: rgba(9, 12, 22, 0.86);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brandbar img { display: block; width: auto; }
+.bb-bni { height: 30px; border-radius: 6px; background: #fff; }
+.bb-yc { height: 20px; opacity: 0.95; }
+
 .view {
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--brandbar));
   max-width: 560px;
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+  padding: 16px 16px max(28px, env(safe-area-inset-bottom));
 }
 
 .card {
@@ -296,7 +312,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 .view-game {
   max-width: none;
   padding: 0;
-  height: 100dvh;
+  height: calc(100dvh - var(--brandbar));
   display: flex;
   flex-direction: column;
   user-select: none;
@@ -309,7 +325,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
   background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent), transparent 80%), var(--bg-2);
 }
