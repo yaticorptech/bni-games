@@ -115,6 +115,11 @@ The rehearsal bots (`npm run simulate`) tap along in team rounds and guess in li
 
 Using a custom domain for the frontend? Use it as `PUBLIC_URL`, and list any other frontend addresses in `CORS_ORIGINS` (comma-separated).
 
+**Live deployment**
+- Players / big screen / admin: https://bni-games-nine.vercel.app (`/screen`, `/admin`) — Vercel project `bni-games`, deployed from `frontend/` with `npx vercel --prod`.
+- API: https://bni-backend-production.up.railway.app — Railway project `bni-games`, service `bni-backend`, deployed from `backend/` with `npx @railway/cli up --service bni-backend`. Variables live in Railway; `PUBLIC_URL` and `CORS_ORIGINS` point at the Vercel aliases.
+- Local development uses a separate database (`MONGODB_DB=bni_games_dev` in `backend/.env`), so rehearsing on a laptop never touches the live event.
+
 **Going-live checklist (hosted)**
 - Railway → Variables: `ADMIN_PASSWORD` (long, not the default), `MONGODB_URI`, `PUBLIC_URL`. The server refuses to start on Railway without `MONGODB_URI`; the Admin page shows **Storage: ☁️ MongoDB** when it's in use.
 - Railway → Settings: pick the region nearest the venue and the MongoDB cluster (e.g. Singapore for India), keep **1 replica**, and make sure **App Sleeping** is off — a sleeping service takes several seconds to wake for the first guest.
