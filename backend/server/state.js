@@ -930,7 +930,7 @@ class GameState extends EventEmitter {
   board(includeLive = true) {
     const cached = includeLive ? this.cache : this.cacheConfirmed;
     if (cached) return cached;
-    const finished = [...this.attempts.values()].filter((a) => a.score != null).sort((a, b) => a.finishedAt - b.finishedAt);
+    const finished = [...this.attempts.values()].filter((a) => a.score != null && GAME_MAP[a.gameId]).sort((a, b) => a.finishedAt - b.finishedAt); // games since removed don't count
     const rows = new Map();
     const leaders = {};
     for (const a of finished) {

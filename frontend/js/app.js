@@ -3,12 +3,11 @@ import rush from './games/rush.js';
 import reflex from './games/reflex.js';
 import memory from './games/memory.js';
 import colors from './games/colors.js';
-import quiz from './games/quiz.js';
 import pictionary from './games/pictionary.js';
 import simon from './games/simon.js';
 import odd from './games/odd.js';
 
-const MODULES = { rush, reflex, memory, colors, quiz, pictionary, simon, odd };
+const MODULES = { rush, reflex, memory, colors, pictionary, simon, odd };
 const VIEWS = ['boot', 'join', 'hub', 'game', 'result', 'tap', 'quiz'];
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -113,7 +112,7 @@ function renderJoin() {
     <form id="join-form" class="card form" autocomplete="on" novalidate>
       ${fields}
       <button class="btn btn-primary btn-lg" type="submit">${byPhone ? 'Log in →' : 'Let’s play →'}</button>
-      <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.length} quick games · your best score in each counts · watch the big screen!</p>
+      <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.filter((g) => !g.hosted).length} quick games · your best score in each counts · watch the big screen!</p>
     </form>`;
 
   const form = $('#join-form');
@@ -750,7 +749,6 @@ function metaLine(gameId, m) {
     case 'reflex': return `Average ${m.avgMs} ms · Best ${m.bestMs} ms${m.falseStarts ? ` · ${m.falseStarts} early tap${m.falseStarts > 1 ? 's' : ''}` : ''}`;
     case 'memory': return m.completed ? `${m.moves} moves in ${Math.round(m.timeMs / 1000)} seconds` : `${m.pairs}/8 pairs — time ran out!`;
     case 'colors': return `${m.correct} right · ${m.wrong} wrong`;
-    case 'quiz': return `${m.correct} of ${m.total} correct`;
     case 'pictionary': return `${m.correct} of ${m.total} professions guessed`;
     case 'simon': return m.level ? `Sequence of ${m.level} completed` : 'Slipped on the first pad — next time!';
     case 'odd': return `${m.correct} spotted · ${m.wrong} wrong`;

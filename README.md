@@ -27,15 +27,12 @@ Locally the backend also serves the pages in `frontend/`, so everything runs fro
 | ⚡ **Lightning Reflex** (5 rounds) | Tap the moment the pad turns green | Up to 200 per round (faster = more), early tap −25 |
 | 🧠 **Memory Match** (2 min max) | Find all 8 pairs | 1000 − 20 per move over 8 − 5 per second over 20 (min 150 if completed) |
 | 🎨 **Colour Clash** (30s) | Tap the ink colour, not the word | Right +30 · Wrong −15 |
-| 🎓 **Givers Gain Quiz** (10 questions) | BNI and business trivia, 15s each | Correct = 50 + up to 50 speed bonus |
 | 🎭 **Emoji Pictionary** (10 puzzles) | Guess the profession from two emojis, 8s each (edit `backend/config/pictionary.json`) | Correct = 50 + up to 50 speed bonus |
 | 🎵 **Handshake Sequence** | Simon says: repeat a growing sequence of pads until you slip | 80 per level to 5, then 120 per level — level 10 = 1000 |
 | 🔍 **Odd One Out** (30s) | Spot the one different emoji in a growing grid | Right +35 · Wrong −15 |
 | 📺 **Live Quiz** (hosted) | The organiser asks questions on the big screen; answer on your phone | Correct = 50 + up to 50 speed bonus, max 1000 |
 
 A player's **total = their best score in each game added together** (max 9000 with the Live Quiz). Ties go to whoever reached that total first. By default each player gets **3 tries per game**; you can change this in Admin (1–10 or unlimited).
-
-**Edit the quiz:** `backend/config/quiz-questions.json`. `answer` is the 0-based position of the correct option. Options are shuffled for each player. Changes apply to the next quiz started, with no restart needed. **Check the BNI facts against your region before the event.**
 
 ## Guest list (phone login)
 
@@ -151,7 +148,7 @@ The platform carries Yaticorp branding: the wordmark (`frontend/img/brand/yatico
 
 ## Fair play
 
-While a game is being played the phone streams its running score, so the big screen shows the player's row ticking up (and a "Playing right now" panel) in real time; those running scores are provisional and the reveal, Admin and CSV use confirmed scores only. Scores are **calculated on the server** from what happened in the game (hits, reaction times, moves), never taken directly from the phone. Every value is range-checked, and the server measures each game's duration itself. A result that comes back faster than the game can be played is rejected. The quiz is fully server-side: answers never reach the phone and every answer is timed by the server. This won't stop a determined hacker, but it does stop the obvious tricks. The admin can remove any suspicious player.
+While a game is being played the phone streams its running score, so the big screen shows the player's row ticking up (and a "Playing right now" panel) in real time; those running scores are provisional and the reveal, Admin and CSV use confirmed scores only. Scores are **calculated on the server** from what happened in the game (hits, reaction times, moves), never taken directly from the phone. Every value is range-checked, and the server measures each game's duration itself. A result that comes back faster than the game can be played is rejected. Emoji Pictionary is fully server-side: answers never reach the phone and every answer is timed by the server. This won't stop a determined hacker, but it does stop the obvious tricks. The admin can remove any suspicious player.
 
 ## Project layout
 
@@ -162,7 +159,6 @@ backend/              Node API + live updates → Railway
     state.js          players, tries, leaderboard, reveal (in memory + persisted)
     realtime.js       live pushes to the screen, phones and admin (throttled to 1/s)
     store/            JSON-file or MongoDB persistence
-  config/quiz-questions.json
   scripts/simulate.js rehearsal bot
 frontend/             static site, no build step: plain HTML/CSS/JS modules → Vercel
   js/config.js        API_URL: where the backend lives

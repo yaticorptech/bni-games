@@ -24,7 +24,6 @@ module.exports = {
   mongoUri: (env.MONGODB_URI || '').trim(),
   mongoDb: env.MONGODB_DB || 'bni_games',
   dataFile: env.DATA_FILE ? path.resolve(env.DATA_FILE) : path.join(root, 'data', 'db.json'),
-  quizFile: path.join(root, 'config', 'quiz-questions.json'),
   pictionaryFile: path.join(root, 'config', 'pictionary.json'),
   // Served too when present (local/laptop mode); absent on Railway, where only backend/ is deployed.
   frontendDir: path.join(root, '..', 'frontend'),

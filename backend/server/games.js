@@ -12,8 +12,6 @@ const config = require('./config');
 const { HttpError, shuffle } = require('./util');
 
 const MAX = 1000;
-const QUIZ_QUESTIONS = 10;
-const QUIZ_LIMIT_MS = 15000;
 const QUIZ_GRACE_MS = 1500; // network latency allowance on top of the 15s
 const PICT_LIMIT_MS = 8000;
 const PICT_PUZZLES = 10;
@@ -29,31 +27,6 @@ function count(value, max, what) {
 function millis(value, max, what) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > max) throw invalid(what);
   return Math.round(value);
-}
-
-// ---------------------------------------------------------------- quiz bank
-
-let quizCache = { mtime: 0, questions: [] };
-
-const validQuestion = (q) =>
-  q && typeof q.q === 'string' && Array.isArray(q.options) &&
-  q.options.length >= 2 && q.options.length <= 6 &&
-  Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length;
-
-/** Re-read config/quiz-questions.json whenever it changes, so questions can be edited without a restart. */
-function quizBank() {
-  try {
-    const { mtimeMs } = fs.statSync(config.quizFile);
-    if (mtimeMs !== quizCache.mtime) {
-      const raw = JSON.parse(fs.readFileSync(config.quizFile, 'utf8'));
-      const questions = (Array.isArray(raw) ? raw : raw.questions || []).filter(validQuestion);
-      if (questions.length) quizCache = { mtime: mtimeMs, questions };
-      else console.warn('[quiz] no valid questions in', config.quizFile);
-    }
-  } catch (err) {
-    console.error('[quiz] could not read', config.quizFile, '-', err.message);
-  }
-  return quizCache.questions;
 }
 
 const quizRuntime = (runtime) => {
@@ -128,12 +101,6 @@ function shuffled(q) {
   const order = shuffle(q.options.map((_, i) => i));
   return { q: q.q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
 }
-
-const quiz = quizLike({
-  limitMs: QUIZ_LIMIT_MS,
-  empty: 'Quiz questions are not set up yet',
-  pick: () => shuffle([...quizBank()]).slice(0, QUIZ_QUESTIONS).map(shuffled),
-});
 
 // ---------------------------------------------------------------- emoji pictionary bank
 
@@ -244,19 +211,6 @@ const GAMES = [
     },
   },
   {
-    id: 'quiz',
-    name: 'Givers Gain Quiz',
-    emoji: '🎓',
-    color: '#22c55e',
-    tagline: '10 quick BNI & business questions.',
-    duration: '10 questions',
-    howTo: ['15 seconds per question', 'Correct answer = 50 points', 'Answer faster for up to +50 bonus'],
-    minMs: 0,
-    start: quiz.start,
-    steps: quiz.steps,
-    score: quiz.score,
-  },
-  {
     id: 'pictionary',
     name: 'Emoji Pictionary',
     emoji: '🎭',
@@ -326,4 +280,4 @@ const GAME_MAP = Object.fromEntries(GAMES.map((g) => [g.id, g]));
 const publicGames = () =>
   GAMES.map(({ id, name, emoji, color, tagline, duration, howTo, hosted, steps }) => ({ id, name, emoji, color, tagline, duration, howTo, hosted: Boolean(hosted), stepped: Boolean(steps), maxScore: MAX }));
 
-module.exports = { GAMES, GAME_MAP, publicGames, quiz, quizRuntime, MAX };
+module.exports = { GAMES, GAME_MAP, publicGames, quizRuntime, MAX };

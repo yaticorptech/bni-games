@@ -678,6 +678,7 @@ function onBoard(p) {
 async function boot() {
   const st = await api('/api/state');
   games = st.games;
+  $('.qr-sub').textContent = `${games.filter((g) => !g.hosted).length} quick games · best scores count`;
   setHeader(st.settings);
   $('#join-url').textContent = st.joinUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const qr = apiUrl(`/api/qr.svg?t=${Date.now()}`);
