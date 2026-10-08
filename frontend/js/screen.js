@@ -658,7 +658,7 @@ async function boot() {
   socket.on('round', onRound);
   socket.on('livequiz', onLive);
   socket.on('luckydraw', runDraw);
-  socket.on('reset', () => {
+  const clearBoard = () => {
     for (const r of rows.values()) r.el.remove();
     rows.clear();
     feedSeeded = false;
@@ -668,7 +668,9 @@ async function boot() {
     live = null;
     for (const id of ['battle-overlay', 'quiz-overlay']) $(`#${id}`).classList.add('hidden');
     renderStandings();
-  });
+  };
+  socket.on('reset', clearBoard);
+  socket.on('scoresReset', clearBoard); // the next board update repopulates teams and standings
 }
 
 // Browsers only allow sound after a click; F toggles fullscreen.

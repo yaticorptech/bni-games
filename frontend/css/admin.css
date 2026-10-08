@@ -71,6 +71,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.025); }
 
 .danger { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; border-color: rgba(227, 38, 58, 0.35); }
 .danger .btn { border-color: rgba(227, 38, 58, 0.5); color: #fca5a5; }
+.danger .btn-gold { border-color: transparent; color: #1d1503; }
 
 /* ----- live quiz & lucky draw cards ----- */
 .lq-edit { margin-top: 12px; }

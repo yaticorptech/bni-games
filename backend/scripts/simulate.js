@@ -7,7 +7,7 @@
  *   npm run simulate -- --players 40 --url http://192.168.1.5:8110
  *   npm run simulate -- --admin <password>   # event has a guest list: the bots log in as listed guests
  *
- * Afterwards wipe the fake data from /admin → "Reset everything".
+ * Afterwards clear the fake scores from /admin → "Reset scores" (guests stay logged in).
  */
 const args = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -173,5 +173,5 @@ async function guest(i) {
   watchHosted();
   await Promise.all(Array.from({ length: players }, (_, i) => guest(i)));
   console.log('\nDone playing. The bots keep tapping in any Team Tap Battle round and guessing in any Live Quiz question you start — press Ctrl+C to stop them.');
-  console.log('Remember to reset the event in /admin before guests arrive.');
+  console.log('Remember to press Reset scores in /admin before guests arrive.');
 })();

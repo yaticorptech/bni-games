@@ -84,7 +84,7 @@ The rehearsal bots (`npm run simulate`) tap along in team rounds and guess in li
 1. Choose where to host it (see *Hosting* below) and open the player URL on two different phones.
 2. Set `ADMIN_PASSWORD`. Then in `/admin`, set the event title, paste the guest list if only invited guests should play (see above) and, optionally, the list of chapters. With chapters set, the join form shows a dropdown and the big screen shows chapter standings.
 3. Rehearse: `npm run simulate -- --players 25` (in `backend/`; add `--url <backend URL>` for the hosted one, and `--admin <password>` when a guest list is set so the bots log in as listed guests) adds fake guests who play for real, so you can watch `/screen` update and practise the reveal.
-4. **In `/admin`, press Reset everything** to clear the rehearsal data.
+4. **In `/admin`, press Reset scores** to clear the rehearsal data — guests stay logged in. (**Remove everyone too** also deletes the players, for a rehearsal with made-up names.)
 
 **On the night**
 1. Open `/screen` on the projector laptop. Click once to enable sound, then press **F** for fullscreen.
@@ -126,7 +126,7 @@ Using a custom domain for the frontend? Use it as `PUBLIC_URL`, and list any oth
 - `API_URL` in `frontend/js/config.js` must be the `https://` Railway address (a plain `http://` one is blocked by browsers on an `https://` page).
 - Open the Vercel URL on two phones (Wi-Fi and mobile data), play one game each, and check `/screen` shows them live.
 - Don't redeploy either side during the event: a backend redeploy restarts the server, which drops games in progress (players get the try back) and reconnects every phone.
-- After the rehearsal, Admin → **Reset everything** to clear the fake data.
+- After the rehearsal, Admin → **Reset scores** (keeps everyone logged in) or **Remove everyone too**.
 
 ## Configuration
 

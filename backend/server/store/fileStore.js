@@ -46,6 +46,7 @@ module.exports = function fileStore(file) {
     saveAttempt: touch,
     deleteAttempt: touch,
     saveSettings: touch,
+    resetAttempts: touch,
     reset: touch,
     async close() {
       writeNow();

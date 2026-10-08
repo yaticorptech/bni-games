@@ -81,6 +81,10 @@ module.exports = function attachRealtime(httpServer, state) {
     leaderId = null;
     io.emit('reset');
   });
+  state.on('scoresReset', () => {
+    leaderId = null;
+    io.emit('scoresReset'); // phones stay logged in, just refresh
+  });
 
   return io;
 };

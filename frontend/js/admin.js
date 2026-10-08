@@ -468,10 +468,14 @@ $('#export-btn').onclick = async () => {
   }
 };
 
+$('#reset-scores-btn').onclick = () => {
+  if (!confirm('Reset all scores, team rounds, lucky-draw winners and quiz progress? Everyone stays logged in.')) return;
+  act(() => call('/api/admin/reset-scores', { method: 'POST' }), '↺ Scores reset — everyone is still logged in');
+};
 $('#reset-btn').onclick = () => {
-  const typed = prompt('This deletes ALL players and scores. Type RESET to confirm.');
+  const typed = prompt('This deletes ALL players as well as every score. Type RESET to confirm.');
   if (typed !== 'RESET') return typed != null && toast('Not reset — you must type RESET');
-  act(() => call('/api/admin/reset', { method: 'POST', body: { confirm: 'RESET' } }), 'Event reset');
+  act(() => call('/api/admin/reset', { method: 'POST', body: { confirm: 'RESET' } }), 'Event reset — players removed');
 };
 
 let socket = null;

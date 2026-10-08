@@ -847,6 +847,12 @@ function connect() {
   socket.on('reset', () => {
     if (getToken()) signedOut('The event was reset — please join again');
   });
+
+  socket.on('scoresReset', () => {
+    if (!S.me) return;
+    toast('↺ Scores were reset — fresh start for everyone!', 5000);
+    if (S.view !== 'game') backToHub(); // a game in progress just finishes and lands on the hub
+  });
 }
 
 // ------------------------------------------------------------------ boot

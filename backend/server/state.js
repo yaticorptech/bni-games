@@ -373,6 +373,30 @@ class GameState extends EventEmitter {
     this.changed();
   }
 
+  /**
+   * Fresh scoreboard, same guests: every score, team round, lucky-draw winner and quiz
+   * progress goes; players stay logged in (teams and avatars included). For after a rehearsal.
+   */
+  resetScores() {
+    this.attempts.clear();
+    this.runtimes.clear();
+    this.recent = [];
+    Object.assign(this.settings, { screenMode: 'live', reveal: null, playOpen: true, teamScores: {}, teamRounds: [], liveAsked: [], luckyDraws: [] });
+    for (const q of this.settings.liveQuiz) delete q.askedAt;
+    this.endRoundTimers();
+    this.round = null;
+    this.emit('round', this.roundPayload());
+    this.endLiveTimers();
+    this.live = null;
+    this.emit('livequiz', this.liveQuizPayload());
+    this.persist('resetAttempts');
+    this.persist('saveSettings', this.settings);
+    this.emit('scoresReset');
+    this.emit('settings', this.publicSettings());
+    this.changed();
+  }
+
+  /** Wipe the event: players too. Settings, the guest list and quiz questions stay. */
   reset() {
     this.players.clear();
     this.byToken.clear();

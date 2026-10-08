@@ -157,6 +157,13 @@ module.exports = function createRoutes(state, { connections, storage }) {
     res.json({ ok: true });
   });
 
+  // Scores, rounds, draws and quiz progress go; everyone stays logged in.
+  r.post('/admin/reset-scores', adminAuth, (_req, res) => {
+    state.resetScores();
+    res.json({ ok: true });
+  });
+
+  // Players go too.
   r.post('/admin/reset', adminAuth, (req, res) => {
     if (req.body?.confirm !== 'RESET') throw new HttpError(400, 'Type RESET to confirm');
     state.reset();

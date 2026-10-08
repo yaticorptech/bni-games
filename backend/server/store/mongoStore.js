@@ -37,6 +37,7 @@ module.exports = function mongoStore(uri, dbName) {
     saveAttempt: (a) => attempts.replaceOne({ _id: a.id }, toDoc(a), { upsert: true }),
     deleteAttempt: (id) => attempts.deleteOne({ _id: id }),
     saveSettings: (s) => meta.replaceOne({ _id: 'settings' }, { _id: 'settings', ...s }, { upsert: true }),
+    resetAttempts: () => attempts.deleteMany({}),
     reset: () => Promise.all([players.deleteMany({}), attempts.deleteMany({})]),
     async close() {
       await client?.close();
