@@ -19,7 +19,7 @@ const clock = (ms) => {
 };
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     const deck = shuffle([...ICONS, ...ICONS]);
     stage.innerHTML = `
       <div class="memory">
@@ -80,6 +80,10 @@ export default {
           b.classList.add('matched');
           pairs++;
           streak++;
+          // Mirror the server's scoring for the running total: 15 a pair until the last one lands.
+          live(pairs === ICONS.length
+            ? Math.max(150, Math.min(1000, Math.round(1000 - Math.max(0, moves - 8) * 20 - Math.max(0, (performance.now() - t0) / 1000 - 20) * 5)))
+            : pairs * 15);
           streak >= 2 ? sfx.combo(streak + 4) : sfx.good();
           vibrate(15);
           if (streak >= 2) popText(`🔥 ${streak} in a row!`);

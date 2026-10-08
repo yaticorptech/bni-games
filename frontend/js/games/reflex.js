@@ -17,7 +17,7 @@ function rating(ms) {
 const EARLY_LINES = ['Too soon! ✋', 'Jumped the gun! 🔫', 'Patience, grasshopper 🦗', 'Itchy fingers! 👆'];
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     stage.innerHTML = `
       <div class="reflex">
         <button class="reflex-pad" type="button"><span class="reflex-big"></span><span class="reflex-sub"></span></button>
@@ -67,6 +67,7 @@ export default {
           sfx.bad();
           vibrate(100);
           hud.score(total());
+          live(total());
           T.after(round, 1400);
         } else if (phase === 'go') {
           // Event timestamps share performance.now()'s clock in modern browsers; fall back if not.
@@ -79,6 +80,7 @@ export default {
           ms < 280 ? sfx.bonus() : sfx.good();
           vibrate(ms < 220 ? [20, 30, 20] : 15);
           hud.score(total());
+          live(total());
           if (times.length >= ROUNDS) {
             T.after(() => { cleanup(); resolve({ times, falseStarts }); }, 1300);
           } else {

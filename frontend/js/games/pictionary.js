@@ -3,7 +3,7 @@
 import { api, withRetry, esc, sleep, abortError } from '../common.js';
 
 export default {
-  async play(stage, { attempt, hud, sfx, signal }) {
+  async play(stage, { attempt, hud, sfx, signal, live }) {
     const id = attempt.attemptId;
     const call = (step, body) => withRetry(() => api(`/api/attempts/${id}/quiz/${step}`, { method: 'POST', body }), signal);
     hud.timeLabel('Puzzle');
@@ -69,6 +69,7 @@ export default {
       feedback.textContent = fb.correct ? `✅ +${fb.points}` : choice < 0 ? `⏰ Time’s up — ${answer}` : `❌ It was ${answer}`;
       fb.correct ? sfx.good() : sfx.bad();
       hud.score(fb.totalPoints);
+      live(fb.totalPoints);
       await sleep(1300, signal);
       if (fb.done) break;
     }

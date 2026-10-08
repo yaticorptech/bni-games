@@ -39,11 +39,15 @@ module.exports = function attachRealtime(httpServer, state) {
     socket.on('tap', (n) => {
       if (socket.data.playerId) state.tap(socket.data.playerId, n);
     });
+    // Running score of a game in progress, so the big screen moves while people play.
+    socket.on('progress', (m) => {
+      if (socket.data.playerId && m && typeof m === 'object') state.progress(socket.data.playerId, String(m.attemptId || ''), m.score === null ? null : m.score);
+    });
   });
 
   let timer = null;
   let lastSent = 0;
-  let leaderId = state.board().ranked[0]?.id ?? null;
+  let leaderId = state.board(false).ranked[0]?.id ?? null;
 
   function broadcast() {
     timer = null;
@@ -52,7 +56,7 @@ module.exports = function attachRealtime(httpServer, state) {
     io.to('screen').emit('board', payload);
 
     if (payload.mode === 'live') {
-      const top = payload.top[0];
+      const top = payload.confirmedLeader; // confirmed scores only, so games in progress can't flicker the banner
       if (top && top.id !== leaderId) io.to('screen').emit('leader', top);
       leaderId = top?.id ?? null;
     }

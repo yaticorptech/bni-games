@@ -120,18 +120,21 @@ export function vibrate(ms) {
 }
 
 /** Animate a number in an element from → to. */
-export function countUp(el, to, ms = 900, from = Number(el.dataset.value ?? 0)) {
+export function countUp(el, to, ms = 900, from = Number(el.dataset.shown ?? el.dataset.value ?? 0)) {
   el.dataset.value = to;
   if (from === to) {
     el.textContent = fmt(to);
+    el.dataset.shown = to;
     return;
   }
   const start = performance.now();
   const step = (now) => {
-    if (el.dataset.value !== String(to)) return; // superseded by a newer count
+    if (el.dataset.value !== String(to)) return; // superseded by a newer count (which continues from what's shown)
     const p = Math.min(1, (now - start) / ms);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = fmt(Math.round(from + (to - from) * eased));
+    const v = Math.round(from + (to - from) * eased);
+    el.textContent = fmt(v);
+    el.dataset.shown = v;
     if (p < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

@@ -5,7 +5,7 @@ Five quick phone games and a **live public leaderboard** for the big screen. Gue
 | Page | URL | Who uses it |
 |---|---|---|
 | Player app | `/` | Guests on their phones (they scan the QR code) |
-| Big screen | `/screen` | Projector or TV: live leaderboard, QR code, live feed, reveal |
+| Big screen | `/screen` | Projector or TV: live leaderboard that moves while people play, QR code, live feed, reveal |
 | Admin | `/admin` | You: open/close games, hide or reveal the board, players, CSV export |
 
 ## Quick start
@@ -149,7 +149,7 @@ The platform carries Yaticorp branding: the wordmark (`frontend/img/brand/yatico
 
 ## Fair play
 
-Scores are **calculated on the server** from what happened in the game (hits, reaction times, moves), never taken directly from the phone. Every value is range-checked, and the server measures each game's duration itself. A result that comes back faster than the game can be played is rejected. The quiz is fully server-side: answers never reach the phone and every answer is timed by the server. This won't stop a determined hacker, but it does stop the obvious tricks. The admin can remove any suspicious player.
+While a game is being played the phone streams its running score, so the big screen shows the player's row ticking up (and a "Playing right now" panel) in real time; those running scores are provisional and the reveal, Admin and CSV use confirmed scores only. Scores are **calculated on the server** from what happened in the game (hits, reaction times, moves), never taken directly from the phone. Every value is range-checked, and the server measures each game's duration itself. A result that comes back faster than the game can be played is rejected. The quiz is fully server-side: answers never reach the phone and every answer is timed by the server. This won't stop a determined hacker, but it does stop the obvious tricks. The admin can remove any suspicious player.
 
 ## Project layout
 

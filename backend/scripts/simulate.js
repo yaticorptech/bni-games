@@ -38,6 +38,20 @@ async function call(path, { method = 'GET', body, token, admin } = {}) {
   return data;
 }
 
+/** Roughly what the server will score `result` — only for the running-score stream. */
+function estimate(gameId, r) {
+  const clamp = (n) => Math.max(0, Math.min(1000, Math.round(n)));
+  switch (gameId) {
+    case 'rush': return clamp(r.good * 20 + r.golden * 50 - r.ghost * 15);
+    case 'reflex': return clamp(r.times.reduce((s, t) => s + Math.max(0, Math.min(200, (650 - t) / 2.5)), 0) - r.falseStarts * 25);
+    case 'memory': return clamp(1000 - Math.max(0, r.moves - 8) * 20 - Math.max(0, r.timeMs / 1000 - 20) * 5);
+    case 'colors': return clamp(r.correct * 30 - r.wrong * 15);
+    case 'simon': return clamp(r.level <= 5 ? r.level * 80 : 400 + (r.level - 5) * 120);
+    case 'odd': return clamp(r.correct * 35 - r.wrong * 15);
+    default: return 0;
+  }
+}
+
 /** Plausible stats for a player with skill 0..1, plus how long the "game" takes. */
 function fake(gameId, skill) {
   switch (gameId) {
@@ -80,7 +94,14 @@ async function play(p, gameId) {
     return finish({});
   }
   const { wait, result } = fake(gameId, p.skill);
-  await sleep(wait);
+  // Stream a rising running score meanwhile, like a phone does, so the big screen moves during the game.
+  const target = estimate(gameId, result);
+  const t0 = Date.now();
+  while (Date.now() - t0 < wait) {
+    await sleep(Math.min(1500, wait - (Date.now() - t0)));
+    const frac = Math.min(1, (Date.now() - t0) / wait);
+    await call(`/api/attempts/${start.attemptId}/progress`, { method: 'POST', token: p.token, body: { score: Math.round(target * frac) } }).catch(() => {});
+  }
   return finish(result);
 }
 

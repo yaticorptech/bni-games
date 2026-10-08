@@ -13,7 +13,7 @@ const FONT = { 3: '2.6rem', 4: '2rem', 5: '1.55rem', 6: '1.3rem' };
 const STREAK_LINES = { 5: '🔥 Eagle eyes!', 10: '⚡ Nothing gets past you!', 15: '🦅 Hawk mode!', 20: '👑 Spot-on legend!' };
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     stage.innerHTML = `
       <div class="odd">
         <p class="odd-hint" id="odd-hint">Find the one that’s different</p>
@@ -74,6 +74,7 @@ export default {
             vibrate([30, 30, 30]);
           } else if (streak >= 3) hint.textContent = `🔥 Streak ×${streak}`;
           hud.score(score());
+          live(score());
           setTimeout(next, 180);
         } else {
           wrong++;
@@ -86,6 +87,7 @@ export default {
           void stage.offsetWidth;
           stage.classList.add('shake');
           hud.score(score());
+          live(score());
         }
       }
 

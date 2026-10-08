@@ -17,6 +17,7 @@ const ATTEMPT_TTL_MS = 15 * 60 * 1000;
 const SCREEN_TOP = 10;
 const LIVE_TOP = 5;
 const REVEAL_SIZES = [3, 5, 10, 15];
+const LIVE_STALE_MS = 60000; // a game in progress that has gone quiet this long (phones re-send every 15 s) drops off the board
 
 // Team Tap Battle: everyone is dealt into teams, then rounds of frantic tapping.
 const TEAM_PALETTE = [
@@ -61,7 +62,7 @@ const defaultSettings = () => ({
 });
 
 const publicPlayer = ({ id, name, emoji, business, chapter, teamId }) => ({ id, name, emoji: emoji || '', business, chapter, teamId: teamId || null });
-const publicRow = ({ rank, id, name, emoji, business, chapter, total, scores }) => ({ rank, id, name, emoji: emoji || '', business, chapter, total, scores });
+const publicRow = ({ rank, id, name, emoji, business, chapter, total, scores, live }) => ({ rank, id, name, emoji: emoji || '', business, chapter, total, scores, live: live || null });
 
 /** A 10-digit Indian mobile number however it was typed (+91, spaces, dashes, a leading 0), else null. */
 function normalizePhone(value) {
@@ -153,12 +154,15 @@ class GameState extends EventEmitter {
     this.recent = []; // last activity items for a freshly loaded big screen
     this.cache = null;
     this.pending = new Set(); // store writes still in flight (see flush)
+    this.liveScores = new Map(); // attemptId → { playerId, gameId, score, at }: running scores of games in progress
+    this.cacheConfirmed = null;
     this.round = null; // Team Tap Battle round in progress (in memory only; see startRound)
     this.roundTimers = [];
     this.live = null; // Live Quiz question on the big screen right now (see askLive)
     this.liveTimers = [];
     store.attach(() => this.snapshot());
     setInterval(() => this.sweep(), 60 * 1000).unref();
+    setInterval(() => this.sweepLive(), 5 * 1000).unref();
   }
 
   async load() {
@@ -216,6 +220,7 @@ class GameState extends EventEmitter {
 
   changed() {
     this.cache = null;
+    this.cacheConfirmed = null;
     this.emit('change');
   }
 
@@ -226,6 +231,19 @@ class GameState extends EventEmitter {
       const a = this.attempts.get(attemptId);
       if (!a || a.startedAt < cutoff) this.runtimes.delete(attemptId);
     }
+  }
+
+  /** Drop running scores that went quiet (phone died or was pocketed mid-game), so the row stops showing "playing". */
+  sweepLive() {
+    const stale = Date.now() - LIVE_STALE_MS;
+    let dropped = false;
+    for (const [attemptId, l] of this.liveScores) {
+      if (l.at < stale || !this.attempts.has(attemptId)) {
+        this.liveScores.delete(attemptId);
+        dropped = true;
+      }
+    }
+    if (dropped) this.changed();
   }
 
   // ------------------------------------------------------------- settings
@@ -272,7 +290,7 @@ class GameState extends EventEmitter {
 
   startReveal(count) {
     const n = REVEAL_SIZES.includes(Number(count)) ? Number(count) : 10;
-    const board = this.board();
+    const board = this.board(false); // confirmed scores only — nothing provisional in the reveal
     if (!board.ranked.length) throw new HttpError(400, 'Nobody has scored yet — nothing to reveal');
     Object.assign(this.settings, {
       screenMode: 'reveal',
@@ -366,6 +384,7 @@ class GameState extends EventEmitter {
       if (a.playerId === p.id) {
         this.attempts.delete(aid);
         this.runtimes.delete(aid);
+        this.liveScores.delete(aid);
       }
     }
     this.recent = this.recent.filter((r) => r.playerId !== p.id);
@@ -380,6 +399,7 @@ class GameState extends EventEmitter {
   resetScores() {
     this.attempts.clear();
     this.runtimes.clear();
+    this.liveScores.clear();
     this.recent = [];
     Object.assign(this.settings, { screenMode: 'live', reveal: null, playOpen: true, teamScores: {}, teamRounds: [], liveAsked: [], luckyDraws: [] });
     for (const q of this.settings.liveQuiz) delete q.askedAt;
@@ -402,6 +422,7 @@ class GameState extends EventEmitter {
     this.byToken.clear();
     this.attempts.clear();
     this.runtimes.clear();
+    this.liveScores.clear();
     this.recent = [];
     Object.assign(this.settings, { screenMode: 'live', reveal: null, playOpen: true, teams: [], teamScores: {}, teamRounds: [], liveAsked: [], luckyDraws: [] });
     for (const q of this.settings.liveQuiz) delete q.askedAt; // keep the questions, let them be asked again
@@ -513,9 +534,10 @@ class GameState extends EventEmitter {
       elapsedMs,
       runtime: this.runtimes.get(a.id),
     });
-    const prevBest = this.board().rankById.get(player.id)?.scores[a.gameId];
+    const prevBest = this.board(false).rankById.get(player.id)?.scores[a.gameId];
     Object.assign(a, { score: Math.round(score), meta, finishedAt: Date.now(), pb: prevBest == null || score > prevBest });
     this.runtimes.delete(a.id);
+    this.liveScores.delete(a.id); // the confirmed score takes over from the running one
     this.persist('saveAttempt', a);
     this.changed();
 
@@ -531,6 +553,31 @@ class GameState extends EventEmitter {
     this.recent.length = Math.min(this.recent.length, 12);
     this.emit('activity', item);
     return this.summary(player, a);
+  }
+
+  /**
+   * A phone reports the running score of a game in progress. Purely provisional — it moves
+   * the big screen while people play; the real score is computed in finishAttempt.
+   */
+  progress(playerId, attemptId, score) {
+    const a = this.attempts.get(attemptId);
+    if (!a || a.playerId !== playerId || a.score != null) return;
+    if (score === null) {
+      // The player quit: take the provisional score off the board straight away.
+      if (this.liveScores.delete(attemptId)) this.changed();
+      return;
+    }
+    const game = GAME_MAP[a.gameId];
+    const s = Number(score);
+    if (!game || game.hosted || !Number.isFinite(s)) return;
+    const value = Math.max(0, Math.min(MAX, Math.round(s)));
+    const prev = this.liveScores.get(attemptId);
+    if (prev && prev.score === value) {
+      prev.at = Date.now(); // heartbeat: still playing, nothing new to show
+      return;
+    }
+    this.liveScores.set(attemptId, { playerId, gameId: a.gameId, score: value, at: Date.now() });
+    this.changed();
   }
 
   summary(player, a) {
@@ -858,7 +905,7 @@ class GameState extends EventEmitter {
 
   /** Pick a random guest for a spot prize. The big screen spins a wheel; the winner's phone celebrates. */
   luckyDraw({ onlyPlayed = false, excludeWinners = true } = {}) {
-    const board = this.board();
+    const board = this.board(false); // "has played" means a finished game
     const previous = new Set(this.settings.luckyDraws.map((d) => d.playerId));
     const pool = [...this.players.values()].filter((p) => (!onlyPlayed || board.rankById.has(p.id)) && (!excludeWinners || !previous.has(p.id)));
     if (!pool.length) throw new HttpError(400, 'Nobody is eligible for the draw');
@@ -875,11 +922,14 @@ class GameState extends EventEmitter {
   // ------------------------------------------------------------- leaderboard
 
   /**
-   * Total = sum of each player's best score per game. Ties go to whoever reached the
-   * total first. Cached until the next change.
+   * Total = sum of each player's best score per game. Ties go to whoever reached the total
+   * first. With `includeLive` (the default) games in progress count provisionally, so the big
+   * screen moves while people play; the reveal, Admin and the CSV use confirmed scores only.
+   * Cached until the next change.
    */
-  board() {
-    if (this.cache) return this.cache;
+  board(includeLive = true) {
+    const cached = includeLive ? this.cache : this.cacheConfirmed;
+    if (cached) return cached;
     const finished = [...this.attempts.values()].filter((a) => a.score != null).sort((a, b) => a.finishedAt - b.finishedAt);
     const rows = new Map();
     const leaders = {};
@@ -900,6 +950,26 @@ class GameState extends EventEmitter {
       }
       if (!leaders[a.gameId] || a.score > leaders[a.gameId].score) leaders[a.gameId] = { id: p.id, name: p.name, score: a.score };
     }
+    if (includeLive) {
+      const now = Date.now();
+      for (const [attemptId, l] of this.liveScores) {
+        if (now - l.at > LIVE_STALE_MS || !this.attempts.has(attemptId)) continue;
+        const p = this.players.get(l.playerId);
+        if (!p) continue;
+        let row = rows.get(p.id);
+        if (!row) {
+          row = { ...publicPlayer(p), total: 0, scores: {}, plays: 0, reachedAt: now };
+          rows.set(p.id, row);
+        }
+        const best = row.scores[l.gameId];
+        const counts = best == null || l.score > best;
+        if (counts) {
+          row.total += l.score - (best || 0);
+          row.reachedAt = now;
+        }
+        row.live = { gameId: l.gameId, score: l.score, counts };
+      }
+    }
     const ranked = [...rows.values()].sort((x, y) => y.total - x.total || x.reachedAt - y.reachedAt);
     ranked.forEach((r, i) => (r.rank = i + 1));
 
@@ -912,14 +982,16 @@ class GameState extends EventEmitter {
       chapterMap.set(r.chapter.toLowerCase(), c);
     }
 
-    this.cache = {
+    const result = {
       ranked,
       rankById: new Map(ranked.map((r) => [r.id, r])),
       leaders: GAMES.map((g) => ({ gameId: g.id, ...(leaders[g.id] || {}) })),
       chapters: [...chapterMap.values()].sort((x, y) => y.total - x.total),
       plays: finished.length,
     };
-    return this.cache;
+    if (includeLive) this.cache = result;
+    else this.cacheConfirmed = result;
+    return result;
   }
 
   /** What the public big screen gets. Nothing score-related leaks while hidden. */
@@ -931,6 +1003,7 @@ class GameState extends EventEmitter {
     const overlays = { teamBattle: s.teams.length ? this.teamSummary() : null, live: this.liveQuizPayload() };
     if (s.screenMode === 'hidden') return { ...base, ...overlays };
     if (s.screenMode === 'reveal') return { ...base, reveal: s.reveal };
+    const confirmed = this.board(false);
     return {
       ...base,
       ...overlays,
@@ -938,13 +1011,21 @@ class GameState extends EventEmitter {
       leaders: board.leaders,
       chapters: board.chapters.slice(0, 8),
       recent: this.recent.slice(0, 8),
+      // Who is mid-game right now, with their running score (for the "Playing right now" panel).
+      playing: board.ranked
+        .filter((r) => r.live)
+        .sort((a, b) => b.live.score - a.live.score)
+        .slice(0, 8)
+        .map((r) => ({ id: r.id, name: r.name, rank: r.rank, gameId: r.live.gameId, score: r.live.score })),
+      // The "New leader" banner follows confirmed scores, so provisional ones don't make it flicker.
+      confirmedLeader: confirmed.ranked[0] ? publicRow(confirmed.ranked[0]) : null,
     };
   }
 
   // ------------------------------------------------------------- admin
 
   adminOverview() {
-    const board = this.board();
+    const board = this.board(false);
     const players = [...this.players.values()].map((p) => {
       const row = board.rankById.get(p.id);
       const used = this.usedAttempts(p.id);
@@ -965,7 +1046,7 @@ class GameState extends EventEmitter {
       settings: { ...settings, revealedAt: reveal?.at ?? null },
       games: publicGames(),
       players,
-      stats: { players: this.players.size, ranked: board.ranked.length, plays: board.plays, started: this.attempts.size },
+      stats: { players: this.players.size, ranked: board.ranked.length, plays: board.plays, started: this.attempts.size, playing: this.liveScores.size },
       teamBattle: this.teamSummary(),
       liveQuiz: {
         questions: this.settings.liveQuiz.map((q, i) => ({ i, q: q.q, options: q.options, answer: q.answer, asked: Boolean(q.askedAt) })),

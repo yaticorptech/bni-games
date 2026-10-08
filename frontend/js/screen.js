@@ -14,8 +14,10 @@ let revealing = false;
 let shownRevealAt = null;
 let feedSeeded = false;
 let bannerQueue = Promise.resolve();
-// Sidebar panels that currently have something to show; they take turns every 12 s.
-const panels = { champions: true, chapters: false, teams: false };
+// Sidebar panels that currently have something to show; they take turns every 12 s. While
+// anyone is mid-game, "Playing right now" holds the slot two turns out of three: for most
+// guests it's the only place they see themselves on the big screen while they play.
+const panels = { playing: false, champions: true, chapters: false, teams: false };
 let panelIndex = 0;
 // Team Tap Battle
 let battleTeams = []; // [{ id, name, color, emoji, members, total, wins }] best first
@@ -45,6 +47,11 @@ function setHeader(p) {
   if ('tagline' in p) $('#tagline').textContent = p.tagline || '';
   if ('players' in p) $('#stat-players').textContent = fmt(p.players);
   if ('plays' in p) $('#stat-plays').textContent = fmt(p.plays);
+  if ('playing' in p) {
+    const n = (p.playing || []).length;
+    $('#stat-playing').textContent = fmt(n);
+    $('#playing-pill').classList.toggle('on', n > 0);
+  }
   if ('playOpen' in p) $('#secret-qr').classList.toggle('hidden', !p.playOpen);
 }
 
@@ -54,6 +61,7 @@ function makeRow() {
   const el = document.createElement('div');
   el.className = 'row';
   el.innerHTML = `
+    <i class="race"></i>
     <div class="rk"></div>
     <div class="av"></div>
     <div class="who"><div class="nm"></div><div class="sb"></div></div>
@@ -77,19 +85,27 @@ function updateRow(r, e) {
     r.emoji = e.emoji;
   }
   el.querySelector('.nm').textContent = e.name;
-  el.querySelector('.sb').textContent = [e.business, e.chapter].filter(Boolean).join(' · ');
+  // Mid-game: a pulsing "playing" tag, and that game's chip shows the running score in green.
+  const liveGame = e.live && gameById(e.live.gameId);
+  const sub = [e.business, e.chapter].filter(Boolean).join(' · ');
+  el.querySelector('.sb').innerHTML = liveGame
+    ? `<span class="now"><i></i>${liveGame.emoji} playing · ${fmt(e.live.score)}</span>${sub ? ` · ${esc(sub)}` : ''}`
+    : esc(sub);
+  el.classList.toggle('playing', Boolean(liveGame));
   const chips = el.querySelector('.chips');
   chips.classList.toggle('many', games.length > 6);
   chips.innerHTML = games
     .map((g) => {
       const v = e.scores[g.id];
-      return `<span class="gchip ${v == null ? 'off' : ''}">${g.emoji}<b>${v == null ? '–' : v}</b></span>`;
+      const isLive = Boolean(e.live && e.live.gameId === g.id);
+      const shown = isLive ? Math.max(e.live.score, v ?? 0) : v;
+      return `<span class="gchip ${shown == null ? 'off' : ''} ${isLive ? 'live' : ''}">${g.emoji}<b>${shown == null ? '–' : shown}</b></span>`;
     })
     .join('');
 
   if (r.total !== e.total) {
-    countUp(el.querySelector('.tt'), e.total, 1300, r.total ?? 0);
-    if (r.total != null) {
+    countUp(el.querySelector('.tt'), e.total, 1000); // continues from whatever is showing: never ticks backwards
+    if (r.total != null && !e.live) { // flash when a final score lands (live rows tick instead, so the board doesn't strobe)
       el.classList.remove('bump');
       void el.offsetWidth;
       el.classList.add('bump');
@@ -118,6 +134,7 @@ function renderBoard(entries) {
   if (visible) for (const [id, r] of rows) before.set(id, r.el.getBoundingClientRect().top);
 
   const seen = new Set();
+  const lead = Math.max(1, entries[0]?.total || 0);
   for (const e of entries) {
     seen.add(e.id);
     let r = rows.get(e.id);
@@ -126,6 +143,7 @@ function renderBoard(entries) {
       rows.set(e.id, r);
     }
     updateRow(r, e);
+    r.el.style.setProperty('--race', `${Math.round((100 * e.total) / lead)}%`); // the race bar: how close to the leader
     board.appendChild(r.el); // appending in order = reordering
   }
   for (const [id, r] of rows) {
@@ -186,12 +204,32 @@ function renderStandings() {
 
 /** One sidebar panel at a time; the ones with content take turns. */
 function syncPanels(advance = false) {
-  const available = Object.keys(panels).filter((k) => panels[k]);
+  const others = Object.keys(panels).filter((k) => k !== 'playing' && panels[k]);
   if (advance) panelIndex++;
-  const show = available[panelIndex % available.length] || 'champions';
+  let show;
+  if (panels.playing) show = panelIndex % 3 === 2 && others.length ? others[Math.floor(panelIndex / 3) % others.length] : 'playing';
+  else show = others[panelIndex % others.length] || 'champions';
   for (const k of Object.keys(panels)) $(`#${k}-panel`).classList.toggle('hidden', k !== show);
 }
 setInterval(() => syncPanels(true), 12000);
+
+/** Sidebar list of everyone mid-game right now, with their running score. Takes the panel slot while anyone is playing. */
+function renderPlaying(list) {
+  if (!panels.playing && list.length) panelIndex = 0; // someone just started: show them straight away
+  panels.playing = list.length > 0;
+  syncPanels();
+  if (!list.length) return;
+  $('#playing').innerHTML = list
+    .slice(0, 4)
+    .map((x) => {
+      const g = gameById(x.gameId);
+      return `<li>
+        <span class="pav"><img src="${photoUrl(x.name)}" alt="" onerror="this.remove()"><span>${esc(initials(x.name))}</span></span>
+        <span class="pn"><b>${esc(x.name)}</b><small>${g?.emoji || '🎮'} ${esc(g?.name || '')}</small><i style="width:${Math.min(100, x.score / 10)}%"></i></span>
+        <span class="ps">${fmt(x.score)}</span></li>`;
+    })
+    .join('');
+}
 
 function feedItem(a) {
   const g = gameById(a.gameId);
@@ -625,6 +663,7 @@ function onBoard(p) {
   if (revealing) return;
   setMode('live');
   renderBoard(p.top || []);
+  renderPlaying(p.playing || []);
   renderChampions(p.leaders || []);
   renderChapters(p.chapters || []);
   if (!feedSeeded) {
@@ -673,6 +712,7 @@ async function boot() {
     live = null;
     for (const id of ['battle-overlay', 'quiz-overlay']) $(`#${id}`).classList.add('hidden');
     renderStandings();
+    renderPlaying([]);
   };
   socket.on('reset', clearBoard);
   socket.on('scoresReset', clearBoard); // the next board update repopulates teams and standings

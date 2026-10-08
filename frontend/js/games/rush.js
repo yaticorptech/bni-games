@@ -13,7 +13,7 @@ const GHOST_LINES = ['👻 Ghost client!', '👻 That lead went cold', '👻 Not
 const STREAK_LINES = { 5: '🔥 ON FIRE!', 10: '⚡ UNSTOPPABLE!', 15: '🚀 REFERRAL MACHINE!', 20: '👑 LEGEND!', 30: '🏆 HALL OF FAME!' };
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     stage.innerHTML = `
       <div class="rush">
         <div class="rush-banner" id="rush-banner"></div>
@@ -111,6 +111,7 @@ export default {
         }
         hide(Number(hole.dataset.i), true);
         hud.score(score());
+        live(score());
       }
 
       function tick() {

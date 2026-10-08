@@ -15,7 +15,7 @@ const STREAK_LINES = { 5: '🔥 Brain not fooled!', 10: '⚡ Laser focus!', 15: 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     stage.innerHTML = `
       <div class="clash">
         <p class="clash-hint">Tap the <b>INK colour</b> — not the word!</p>
@@ -94,7 +94,9 @@ export default {
           flash('no');
           setHint(pick(WRONG_LINES));
         }
-        hud.score(Math.max(0, Math.min(1000, correct * 30 - wrong * 15)));
+        const pts = Math.max(0, Math.min(1000, correct * 30 - wrong * 15));
+        hud.score(pts);
+        live(pts);
         next();
       }
 

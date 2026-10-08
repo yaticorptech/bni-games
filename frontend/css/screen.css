@@ -78,7 +78,7 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 .board-wrap { position: relative; display: flex; flex-direction: column; min-height: 0; }
 .board-head, .row {
   display: grid;
-  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.8rem 7.4rem;
+  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.8rem 9rem; /* totals up to 9,000 fit at the #1 size */
   align-items: center;
   gap: 0.9rem;
 }
@@ -164,6 +164,19 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
   pointer-events: none;
 }
 @keyframes bump { to { opacity: 0; } }
+.row.playing { border-color: rgba(34, 197, 94, 0.5); }
+/* Race bar: a soft band along the bottom of each row showing how close to the leader (moves with the score). */
+.row > .race { position: absolute; left: 0; bottom: 0; height: 0.3rem; width: var(--race, 0%); background: linear-gradient(90deg, rgba(0, 149, 218, 0.7), rgba(0, 149, 218, 0.25)); border-radius: 0 99px 99px 0; transition: width 1s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.row.r1 .race { background: linear-gradient(90deg, rgba(247, 197, 72, 0.9), rgba(247, 197, 72, 0.3)); }
+.row.playing .race { background: linear-gradient(90deg, rgba(34, 197, 94, 0.85), rgba(34, 197, 94, 0.3)); }
+.row > *:not(.race) { position: relative; }
+.playing-pill { display: none; }
+.playing-pill.on { display: inline-flex; border-color: rgba(34, 197, 94, 0.55); color: #86efac; }
+.playing-pill .dot { background: var(--green); animation: pulse 1.6s infinite; }
+.now { color: #86efac; font-weight: 800; }
+.now i { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--green); margin-right: 0.4rem; vertical-align: middle; animation: pulse 1.6s infinite; }
+.gchip.live { background: rgba(34, 197, 94, 0.22); box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.55); }
+.gchip.live b { color: #86efac; }
 
 .empty { position: absolute; inset: 3rem 0 0; display: grid; place-content: center; justify-items: center; gap: 0.8rem; text-align: center; }
 .empty-icon { font-size: 6rem; animation: float 3s ease-in-out infinite; }
@@ -205,7 +218,27 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 .cs { font-weight: 900; font-size: 1.3rem; color: var(--gold); font-variant-numeric: tabular-nums; }
 .chapters li { grid-template-columns: 2.2rem minmax(0, 1fr) auto; }
 .chapters .crk { font-weight: 900; color: var(--muted); font-size: 1.2rem; text-align: center; }
+/* Nine games: champions as a compact two-column grid, so "Playing right now" and the feed keep their room below. */
+.champions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem 0.6rem; }
+.side .champions li { grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: 0.5rem; padding: 0.4rem 0.6rem; border: 0; border-radius: 0.7rem; background: rgba(255, 255, 255, 0.04); }
+.champions .ce { font-size: 1.15rem; }
+.champions .cn b { font-size: 0.98rem; }
+.champions .cn small { font-size: 0.76rem; }
+.champions .cs { font-size: 1.02rem; }
+/* The rotating slot gives way first when the sidebar is short of room; the feed keeps at least a few lines. */
+#playing-panel, #champions-panel, #chapters-panel, #teams-panel { flex: 0 1 auto; min-height: 0; overflow: hidden; }
+.feed-panel { flex: 1 1 8rem; }
 
+.playing { list-style: none; margin: 0; padding: 0; }
+.playing li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; gap: 0.7rem; align-items: center; padding: 0.4rem 0; border-top: 1px solid var(--line); }
+.playing li:first-child { border-top: 0; }
+.pav { position: relative; width: 2.4rem; height: 2.4rem; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, 0.08); display: grid; place-items: center; font-size: 0.9rem; font-weight: 800; color: var(--muted); }
+.pav img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pn { min-width: 0; }
+.pn b { display: block; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn small { color: var(--muted); font-size: 0.85rem; }
+.pn i { display: block; height: 0.35rem; margin-top: 0.3rem; border-radius: 99px; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width 0.8s ease; }
+.ps { font-weight: 900; font-size: 1.2rem; color: #86efac; font-variant-numeric: tabular-nums; }
 .feed-panel { flex: 1; min-height: 0; overflow: hidden; }
 .feed li {
   display: grid;

@@ -14,7 +14,7 @@ const points = (level) => Math.min(1000, level <= 5 ? level * 80 : 400 + (level 
 const CHEERS = ['Nice!', 'Smooth 🤝', 'Keep going!', 'You’ve got this', 'Impressive!', '🔥 On a roll', 'Unreal!', '🧠 Elephant memory!'];
 
 export default {
-  play(stage, { hud, sfx, signal }) {
+  play(stage, { hud, sfx, signal, live }) {
     stage.innerHTML = `
       <div class="simon">
         <div class="simon-status" id="simon-status">Watch the pattern…</div>
@@ -99,6 +99,7 @@ export default {
         phase = 'show';
         if (inputTimer) T.cancel(inputTimer);
         hud.score(points(done));
+        live(points(done));
         status.innerHTML = `${CHEERS[Math.min(CHEERS.length - 1, Math.floor(done / 2))]}<small>Level ${done} done · ${points(done)} points</small>`;
         done >= 5 ? sfx.combo(done) : sfx.good();
         if (done >= MAX_LEVEL) {

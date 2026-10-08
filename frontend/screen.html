@@ -19,6 +19,7 @@
     </div>
     <div class="top-right">
       <div class="pill live-pill" id="live-pill"><span class="dot"></span><span id="live-text">LIVE</span></div>
+      <div class="pill playing-pill" id="playing-pill"><span class="dot"></span><b id="stat-playing">0</b> playing now</div>
       <div class="pill"><b id="stat-players">0</b> players</div>
       <div class="pill"><b id="stat-plays">0</b> games played</div>
     </div>
@@ -56,6 +57,10 @@
       <div class="panel hidden" id="teams-panel">
         <h2>👥 Team battle standings</h2>
         <ol class="chapters" id="standings"></ol>
+      </div>
+      <div class="panel playing-panel hidden" id="playing-panel">
+        <h2>🎮 Playing right now</h2>
+        <ul class="playing" id="playing"></ul>
       </div>
       <div class="panel feed-panel">
         <h2>⚡ Live feed</h2>

@@ -43,6 +43,7 @@ function renderStats() {
     <div class="stat"><span class="label">Players joined</span><b>${fmt(stats.players)}</b></div>
     <div class="stat"><span class="label">On leaderboard</span><b>${fmt(stats.ranked)}</b></div>
     <div class="stat"><span class="label">Games played</span><b>${fmt(stats.plays)}</b></div>
+    <div class="stat"><span class="label">Playing right now</span><b>${fmt(stats.playing || 0)}</b></div>
     <div class="stat"><span class="label">Devices connected</span><b>${fmt(connections)}</b></div>
     <div class="stat ${durable ? '' : 'closed'}" title="${esc(storage)}"><span class="label">Storage</span><b class="text">${durable ? '☁️ MongoDB' : '⚠️ Local file'}</b></div>`;
   $('#ad-title').textContent = settings.eventTitle;

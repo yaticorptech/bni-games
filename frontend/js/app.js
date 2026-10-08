@@ -643,6 +643,40 @@ async function backToHub() {
   show('hub');
 }
 
+/**
+ * Streams a game's running score to the big screen (at most ~1.5 times a second, plus a
+ * heartbeat every 15 s so a quiet game stays on the board). The final score still comes from
+ * the server; this only moves the leaderboard while the game is on.
+ */
+function liveReporter(attemptId) {
+  let last = null;
+  let pending = 0;
+  let timer = null;
+  const post = (score) => {
+    if (socket?.connected) socket.emit('progress', { attemptId, score });
+    else api(`/api/attempts/${attemptId}/progress`, { method: 'POST', body: { score } }).catch(() => {});
+  };
+  const send = () => {
+    timer = null;
+    if (pending === last) return;
+    last = pending;
+    post(pending);
+  };
+  const beat = setInterval(() => post(last ?? pending), 15000);
+  const report = (pts) => {
+    if (typeof pts !== 'number' || !Number.isFinite(pts)) return;
+    pending = Math.round(pts);
+    if (!timer) timer = setTimeout(send, 700);
+  };
+  report.stop = (quit = false) => {
+    clearTimeout(timer);
+    clearInterval(beat);
+    timer = null;
+    if (quit) post(null); // off the board straight away
+  };
+  return report;
+}
+
 async function runGame(g, start) {
   const view = $('#view-game');
   view.innerHTML = `
@@ -674,11 +708,14 @@ async function runGame(g, start) {
   };
   const stage = $('#stage');
 
+  const live = liveReporter(start.attemptId);
   let result;
   try {
     await countdown(stage, ac.signal);
-    result = await MODULES[g.id].play(stage, { attempt: start, hud, sfx, signal: ac.signal });
+    live(0); // on the big screen's "Playing right now" from the first second
+    result = await MODULES[g.id].play(stage, { attempt: start, hud, sfx, signal: ac.signal, live });
   } catch (err) {
+    live.stop(true);
     $('#modal').classList.add('hidden');
     if (err.name !== 'AbortError') {
       if (err.status === 401) return signedOut('Please join again');
@@ -686,6 +723,7 @@ async function runGame(g, start) {
     }
     return backToHub();
   }
+  live.stop();
   $('#modal').classList.add('hidden');
   $('#quit-btn').disabled = true;
   stage.innerHTML = `<div class="saving"><div class="spinner"></div><p>Saving your score…</p></div>`;

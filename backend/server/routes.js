@@ -94,6 +94,12 @@ module.exports = function createRoutes(state, { connections, storage }) {
     res.status(201).json(state.startAttempt(req.player, req.params.gameId));
   });
 
+  // Running score of a game in progress (provisional; the finish below is what counts).
+  r.post('/attempts/:id/progress', playerAuth, (req, res) => {
+    state.progress(req.player.id, req.params.id, req.body?.score === null ? null : req.body?.score);
+    res.json({ ok: true });
+  });
+
   r.post('/attempts/:id/finish', playerAuth, (req, res) => {
     res.json(state.finishAttempt(req.player, req.params.id, req.body?.result));
   });
