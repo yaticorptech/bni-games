@@ -22,6 +22,9 @@ let panelIndex = 0;
 // Team Tap Battle
 let battleTeams = []; // [{ id, name, color, emoji, members, total, wins }] best first
 let battleRound = null; // latest round payload
+let lastLeadSfx = 0; // when the lead-change riser last played
+let battleBeepSec = null; // last second we beeped in a round's final countdown
+let liveBeepSec = null; // same for a live-quiz question
 let battleAt = 0; // performance.now() when it arrived
 let battleDrawnNo = null; // round whose bars are on screen
 let announcedNo = null; // round whose winner banner has been shown
@@ -114,6 +117,7 @@ function updateRow(r, e) {
   if (r.rank != null && r.rank !== e.rank) {
     const d = el.querySelector('.delta');
     const up = e.rank < r.rank;
+    if (up && e.rank <= 3 && r.rank > 3) sfx.rise(); // climbed into the top 3
     d.textContent = `${up ? '▲' : '▼'}${Math.abs(r.rank - e.rank)}`;
     d.className = `delta ${up ? 'up' : 'down'}`;
     clearTimeout(r.deltaTimer);
@@ -246,6 +250,14 @@ function addActivity(a, animate = true) {
   const ul = $('#feed');
   ul.querySelector('.empty-feed')?.remove();
   const li = feedItem(a);
+  if (animate) {
+    // Every finished game gets a chime (higher score, higher note); a new best or fastest finger sparkles.
+    if (a.fastest) sfx.sparkle();
+    else {
+      const d = sfx.ding((a.score || 0) / 1000);
+      if (a.improved) sfx.sparkle(d + 0.12);
+    }
+  }
   ul.prepend(li);
   if (animate) li.animate([{ opacity: 0, transform: 'translateY(-1rem)' }, { opacity: 1, transform: 'none' }], { duration: 450, easing: 'ease-out' });
   while (ul.children.length > 8) ul.lastElementChild.remove();
@@ -259,7 +271,8 @@ function showLeader(top) {
       <div><small>New leader!</small><b>${withEmoji(top)}</b></div>
       <span class="banner-score">${fmt(top.total)}</span></div>`;
     banner.classList.add('show');
-    sfx.win();
+    sfx.whoosh();
+    sfx.cheer(2.6, 0.15);
     confetti({ duration: 2200, count: 150 });
     await sleep(4200);
     banner.classList.remove('show');
@@ -316,7 +329,8 @@ async function runReveal(reveal) {
   const root = $('#reveal');
   try {
     root.innerHTML = `<div class="rv-intro"><div class="rv-trophy">🏆</div><h1>And the winners are…</h1></div>`;
-    sfx.drum();
+    sfx.drumroll(3.3);
+    sfx.crash(3.35);
     await sleep(3800);
     root.innerHTML = revealSkeleton(reveal.entries);
     await sleep(1200);
@@ -324,15 +338,21 @@ async function runReveal(reveal) {
       const slot = root.querySelector(`.slot[data-rank="${e.rank}"]`);
       if (e.rank <= 3) {
         slot.classList.add('drum');
-        sfx.drum();
+        const roll = e.rank === 1 ? 4.0 : 2.6;
+        sfx.drumroll(roll);
+        sfx.crash(roll + 0.05);
         await sleep(e.rank === 1 ? 4200 : 2800);
       }
       fillSlot(slot, e);
       if (e.rank === 1) {
-        sfx.win();
+        sfx.cheer(6.5);
         confetti({ duration: 7000, count: 260 });
+      } else if (e.rank <= 3) {
+        sfx.fanfare();
+        sfx.applause(2.2, 0.4);
       } else {
-        sfx.good();
+        sfx.whoosh();
+        sfx.ding(0.7);
       }
       await sleep(e.rank <= 3 ? 2200 : 1300);
     }
@@ -356,10 +376,17 @@ function onRound(r) {
     }
     overlay.classList.remove('hidden');
     renderBattle();
+    // The lead changes hands mid-round: a riser (at most one every 1.5 s in a tight race).
+    const lead = r.ranking?.[0];
+    if (r.status === 'running' && prev?.status === 'running' && lead && prev.ranking?.[0] && lead !== prev.ranking[0] && !r.tie && performance.now() - lastLeadSfx > 1500) {
+      lastLeadSfx = performance.now();
+      sfx.rise();
+    }
   } else if (r.status === 'ended' && prev && prev.no === r.no) {
     renderBattle();
     if (prev.status === 'running' && announcedNo !== r.no) {
       announcedNo = r.no;
+      sfx.buzz(); // the final horn
       announceWinner(r);
     }
     battleHideTimer = setTimeout(() => overlay.classList.add('hidden'), 12000); // linger on the result, then give the board back
@@ -432,8 +459,13 @@ function tickBattleClock() {
     clock.classList.remove('urgent');
   } else if (r.status === 'running') {
     const left = Math.max(0, r.remainingMs - dt);
-    clock.textContent = `${Math.ceil(left / 1000)}s`;
+    const sec = Math.ceil(left / 1000);
+    clock.textContent = `${sec}s`;
     clock.classList.toggle('urgent', left < 5500);
+    if (left > 0 && sec <= 3 && sec !== battleBeepSec) {
+      battleBeepSec = sec;
+      sfx.tick();
+    }
   } else {
     clock.textContent = r.status === 'ended' ? '0s' : '';
     clock.classList.remove('urgent');
@@ -451,7 +483,8 @@ function announceWinner(r) {
           <div><small>Round ${r.no} winner</small><b>Team ${esc(w?.name || '?')}</b></div>
           <span class="banner-score">${fmt(r.taps[r.ranking[0]] || 0)} taps</span></div>`;
     banner.classList.add('show');
-    sfx.win();
+    if (r.tie) sfx.good();
+    else sfx.cheer(3.5, 0.4);
     confetti({ duration: 4000, count: 220 });
     await sleep(5000);
     banner.classList.remove('show');
@@ -478,12 +511,18 @@ function onLive(q) {
   }
   overlay.classList.remove('hidden');
   renderLive();
-  if (q.status === 'open' && prev?.no !== q.no) sfx.go();
+  if (q.status === 'open' && prev?.no !== q.no) {
+    liveBeepSec = null;
+    sfx.whoosh();
+    sfx.go();
+  }
   if (q.status === 'closed' && prev?.status === 'open' && prev.no === q.no) {
+    sfx.buzz(); // time's up…
     if (q.kind === 'vote' ? q.answered > 0 : q.result?.correctCount) {
-      sfx.win();
+      sfx.fanfare(0.5); // …and the answer
+      sfx.applause(2.5, 0.8);
       confetti({ duration: 2500, count: 160 });
-    } else sfx.bad();
+    } else setTimeout(() => sfx.bad(), 500);
   }
   // The answer stays up a while, then the board comes back unless the host asks the next one.
   if (q.status === 'closed') liveHideTimer = setTimeout(() => overlay.classList.add('hidden'), prev ? 25000 : 8000);
@@ -554,8 +593,13 @@ function tickLiveClock() {
     return;
   }
   const left = Math.max(0, live.remainingMs - (performance.now() - liveAt));
-  clock.textContent = `${Math.ceil(left / 1000)}s`;
+  const sec = Math.ceil(left / 1000);
+  clock.textContent = `${sec}s`;
   clock.classList.toggle('urgent', left < 5500);
+  if (left > 0 && sec <= 5 && sec !== liveBeepSec) {
+    liveBeepSec = sec;
+    sfx.tick();
+  }
   bar.style.width = `${(left / live.limitMs) * 100}%`;
 }
 setInterval(tickLiveClock, 100);
@@ -620,7 +664,7 @@ async function runDraw(d) {
   const t0 = performance.now();
   let lastIdx = -1;
   let spinning = true;
-  sfx.drum();
+  sfx.drumroll(1.6);
   // Frames via rAF, but the reveal runs on a timer so a throttled tab can't leave the wheel spinning forever.
   (function frame(now) {
     if (!spinning) return;
@@ -639,6 +683,8 @@ async function runDraw(d) {
   spinning = false;
   draw(target);
   $('#wheel-center').textContent = '🎉';
+  sfx.crash();
+  sfx.cheer(4, 0.2);
   $('#draw-winner').innerHTML = `<small>And the winner is…</small><div class="draw-photo"><img src="${photoUrl(d.winner.name)}" alt="" onerror="this.parentElement.remove()"></div><b>${withEmoji(d.winner)}</b>${d.winner.business ? `<span>${esc(d.winner.business)}</span>` : ''}`;
   sfx.win();
   confetti({ duration: 6000, count: 260 });
@@ -719,13 +765,30 @@ async function boot() {
   socket.on('scoresReset', clearBoard); // the next board update repopulates teams and standings
 }
 
-// Browsers only allow sound after a click; F toggles fullscreen.
+// Browsers only allow sound after a click or key press. M mutes/unmutes, F toggles fullscreen.
+function soundHint() {
+  const el = $('#sound-hint');
+  if (el) el.textContent = sfx.muted ? '🔇 Sound off · press M to unmute · F for fullscreen' : '🔊 Sound on · press M to mute · F for fullscreen';
+}
 document.addEventListener('click', () => {
   sfx.unlock();
-  $('#sound-hint')?.remove();
+  soundHint();
 }, { once: true });
+$('#sound-hint').addEventListener('click', () => {
+  sfx.unlock();
+  sfx.muted = false;
+  soundHint();
+  sfx.good();
+});
 document.addEventListener('keydown', (e) => {
-  if (e.key.toLowerCase() !== 'f') return;
+  sfx.unlock();
+  const k = e.key.toLowerCase();
+  if (k === 'm') {
+    sfx.muted = !sfx.muted;
+    soundHint();
+    if (!sfx.muted) sfx.good();
+  }
+  if (k !== 'f') return;
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen?.().catch(() => {});
 });

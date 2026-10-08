@@ -42,6 +42,8 @@ While the list has names, the join form asks for a mobile number instead of a na
 
 ## Hosted moments on the big screen
 
+**Sound on the big screen.** Browsers only play audio after a click, so click once on the screen page when you set it up (press **M** to mute/unmute, **F** for fullscreen). Every finished game chimes (a higher score is a higher note), a new best sparkles, climbing into the top 3 gets a riser, a new leader gets a fanfare and applause, the team battle has countdown beeps, a lead-change riser and a final horn, the live quiz ticks down its last five seconds and buzzes at time's up, the lucky draw rolls and crashes into the winner, and the grand reveal builds with drumrolls and cymbals. All sounds are synthesised in the browser — no audio files to host.
+
 The big screen always stays on the live leaderboard. The hosted moments below appear **on top of it** as overlays and get out of the way by themselves.
 
 ### Team Tap Battle (group game)

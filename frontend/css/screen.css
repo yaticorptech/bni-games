@@ -447,6 +447,7 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 }
 .powered img { height: 1.5rem; }
 .sound-hint {
+  cursor: pointer;
   position: fixed;
   left: 1rem; bottom: 0.4rem;
   border: 0;

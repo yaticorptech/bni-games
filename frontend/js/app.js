@@ -338,6 +338,7 @@ function onTapPress(e) {
   void btn.offsetWidth;
   btn.classList.add('hit');
   vibrate(8);
+  sfx.tap();
   if (!tapUi.flushTimer) tapUi.flushTimer = setTimeout(flushTaps, 200);
 }
 
