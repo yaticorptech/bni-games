@@ -40,8 +40,8 @@ const quizRuntime = (runtime) => {
  */
 function quizLike({ pick, limitMs, empty }) {
   return {
-    start() {
-      const picked = pick();
+    start(ctx = {}) {
+      const picked = pick(ctx);
       if (!picked.length) throw new HttpError(503, empty);
       return {
         runtime: { qs: picked, i: 0, servedAt: null, points: [], correct: 0, last: null, limitMs },
@@ -91,7 +91,8 @@ function quizLike({ pick, limitMs, empty }) {
     },
     score(_r, { runtime }) {
       const rt = quizRuntime(runtime);
-      return { score: clamp(rt.points.reduce((a, b) => a + b, 0), 0, MAX), meta: { correct: rt.correct, total: rt.qs.length } };
+      // `served` remembers which questions this try used, so the player's next try gets fresh ones.
+      return { score: clamp(rt.points.reduce((a, b) => a + b, 0), 0, MAX), meta: { correct: rt.correct, total: rt.qs.length, served: rt.qs.map((q) => q.q) } };
     },
   };
 }
@@ -125,10 +126,13 @@ function pictBank() {
 const pictionary = quizLike({
   limitMs: PICT_LIMIT_MS,
   empty: 'Pictionary puzzles are not set up yet',
-  pick: () => {
+  pick: ({ seen = new Set() } = {}) => {
     const bank = pictBank();
     const answers = [...new Set(bank.map((p) => p.answer))];
-    return shuffle([...bank]).slice(0, PICT_PUZZLES).map((p) => {
+    // Puzzles this player hasn't seen in earlier tries come first; already-seen ones only top up a short bank.
+    const fresh = shuffle(bank.filter((p) => !seen.has(p.emoji)));
+    const again = shuffle(bank.filter((p) => seen.has(p.emoji)));
+    return [...fresh, ...again].slice(0, PICT_PUZZLES).map((p) => {
       // The right profession plus three others from the bank, in random order.
       const others = shuffle(answers.filter((x) => x !== p.answer)).slice(0, 3);
       return shuffled({ q: p.emoji, options: [p.answer, ...others], answer: 0 });

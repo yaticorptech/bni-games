@@ -503,7 +503,15 @@ class GameState extends EventEmitter {
     const left = this.attemptsLeft(used);
     if (left === 0) throw new HttpError(403, 'No tries left for this game', 'NO_ATTEMPTS');
 
-    const { runtime, payload } = game.start ? game.start() : {};
+    // Question games avoid puzzles this player has already seen in earlier tries (finished or abandoned).
+    const seen = new Set();
+    for (const x of this.attempts.values()) {
+      if (x.playerId !== player.id || x.gameId !== gameId) continue;
+      for (const q of x.meta?.served || []) seen.add(q);
+      const rt = this.runtimes.get(x.id);
+      if (rt?.qs) for (const q of rt.qs) seen.add(q.q);
+    }
+    const { runtime, payload } = game.start ? game.start({ seen }) : {};
     const a = { id: id(12), playerId: player.id, gameId, startedAt: Date.now(), finishedAt: null, score: null, meta: null, pb: false };
     this.attempts.set(a.id, a);
     if (runtime) this.runtimes.set(a.id, runtime);
