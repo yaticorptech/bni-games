@@ -92,8 +92,6 @@ function renderJoin() {
   // With a guest list, the organiser already knows everyone: guests log in with the mobile
   // number they registered, and their name comes from the list.
   const byPhone = s.loginMode === 'phone';
-  const emojis = s.emojis || [];
-  const defaultEmoji = emojis[Math.floor(Math.random() * emojis.length)] || ''; // a random one, so the board has avatars even if people skip it
   const chapterSelect =`<select name="chapter"><option value="">Select your chapter</option>${s.chapters.map((c) => `<option>${esc(c)}</option>`).join('')}</select>`;
   const chapterField = s.chapters.length ? chapterSelect : `<input name="chapter" maxlength="40" placeholder="e.g. BNI Titans">`;
   const fields = byPhone
@@ -114,23 +112,12 @@ function renderJoin() {
     </div>
     <form id="join-form" class="card form" autocomplete="on" novalidate>
       ${fields}
-      <div class="field"><span>Your emoji — it shows next to your name on the big screen</span>
-        <div class="emoji-grid" id="emoji-grid">${emojis.map((e) => `<button type="button" class="emoji-opt ${e === defaultEmoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join('')}</div>
-        <input type="hidden" name="emoji" value="${defaultEmoji}"></div>
       <button class="btn btn-primary btn-lg" type="submit">${byPhone ? 'Log in →' : 'Let’s play →'}</button>
       <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.length} quick games · your best score in each counts · watch the big screen!</p>
     </form>
     <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
 
   const form = $('#join-form');
-  $('#emoji-grid').addEventListener('click', (e) => {
-    const opt = e.target.closest('.emoji-opt');
-    if (!opt) return;
-    form.querySelectorAll('.emoji-opt').forEach((b) => b.classList.toggle('on', b === opt));
-    form.emoji.value = opt.dataset.e;
-    sfx.unlock();
-    sfx.tick();
-  });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const body = Object.fromEntries(new FormData(form));
@@ -174,7 +161,7 @@ function miniBoardHtml() {
       (r) => `
       <div class="mini-row ${r.id === me.player.id ? 'me' : ''}">
         <div class="mini-rank">${['🥇', '🥈', '🥉'][r.rank - 1] || r.rank}</div>
-        <div class="mini-av"><img src="${photoUrl(r.name)}" alt="" onerror="this.remove()"><span>${esc(r.emoji || initials(r.name))}</span></div>
+        <div class="mini-av"><img src="${photoUrl(r.name)}" alt="" onerror="this.remove()"><span>${esc(initials(r.name))}</span></div>
         <div class="mini-name">${esc(r.name)}${r.business ? `<small>${esc(r.business)}</small>` : ''}</div>
         <div class="mini-total">${fmt(r.total)}</div>
       </div>`,
@@ -212,7 +199,7 @@ function renderHub() {
     <header class="hub-head">
       <div class="hub-id">
         <div class="hub-photo"><img src="${photoUrl(me.player.name)}" alt="" onerror="this.parentElement.remove()"></div>
-        <div><div class="eyebrow">${esc(s.eventTitle)}</div><h2>Hi, ${esc(first)} ${esc(me.player.emoji || '👋')}</h2></div>
+        <div><div class="eyebrow">${esc(s.eventTitle)}</div><h2>Hi, ${esc(first)} 👋</h2></div>
       </div>
       <button class="icon-btn" id="mute-btn" aria-label="Toggle sound">${sfx.muted ? '🔇' : '🔊'}</button>
     </header>
@@ -225,7 +212,7 @@ function renderHub() {
     <section class="games">${S.games.filter((g) => !g.hosted).map(gameCardHtml).join('')}</section>
     <section class="card mini-board" id="mini-board">${miniBoardHtml()}</section>
     <footer class="hub-foot">Playing as <b>${esc(me.player.name)}</b>${me.player.business ? ` · ${esc(me.player.business)}` : ''}<br>
-      <button class="link" id="emoji-btn">Change emoji</button> · <button class="link" id="switch-btn">Not you? Switch player</button></footer>
+      <button class="link" id="switch-btn">Not you? Switch player</button></footer>
     <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
 
   $('#view-hub').querySelectorAll('.game-card').forEach((el) => el.addEventListener('click', () => openGame(el.dataset.game)));
@@ -240,39 +227,6 @@ function renderHub() {
       ok: 'Switch',
     });
     if (ok) signedOut();
-  };
-  $('#emoji-btn').onclick = pickEmoji;
-}
-
-/** Change the avatar emoji from the hub — tapping one saves it straight away. */
-function pickEmoji() {
-  const el = $('#modal');
-  el.innerHTML = `
-    <div class="modal-box">
-      <h3>Pick your emoji</h3>
-      <div class="emoji-grid">${(S.settings.emojis || []).map((e) => `<button type="button" class="emoji-opt ${e === S.me.player.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join('')}</div>
-      <div class="modal-actions"><button class="btn btn-ghost" data-act="no">Cancel</button><span></span></div>
-    </div>`;
-  el.classList.remove('hidden');
-  const close = () => {
-    el.classList.add('hidden');
-    el.innerHTML = '';
-    el.onclick = null;
-  };
-  el.onclick = async (e) => {
-    const opt = e.target.closest('.emoji-opt');
-    if (opt) {
-      try {
-        S.me = await api('/api/me', { method: 'PUT', body: { emoji: opt.dataset.e } });
-        renderHub();
-        sfx.good();
-        toast(`You’re ${opt.dataset.e} on the big screen now`);
-      } catch (err) {
-        toast(err.message);
-      }
-      return close();
-    }
-    if (e.target === el || e.target.closest('[data-act="no"]')) close();
   };
 }
 
@@ -615,7 +569,7 @@ function onLuckyDraw(d) {
         cancel: 'Close',
       });
     } else {
-      toast(`🎡 Lucky draw: ${d.winner.emoji ? `${d.winner.emoji} ` : ''}${d.winner.name} wins a prize!`, 8000);
+      toast(`🎡 Lucky draw: ${d.winner.name} wins a prize!`, 8000);
     }
   }, 7200);
 }
@@ -629,7 +583,7 @@ function nudge(before) {
   if (performance.now() - lastNudgeAt < 20000 || $('#toast')?.classList.contains('show')) return;
   lastNudgeAt = performance.now();
   if (me.rank > before.rank && me.above) {
-    toast(`📉 ${me.above.emoji ? `${me.above.emoji} ` : ''}${me.above.name} just overtook you — you’re #${me.rank} now. Play again to climb back!`, 6000);
+    toast(`📉 ${me.above.name} just overtook you — you’re #${me.rank} now. Play again to climb back!`, 6000);
   } else if (me.rank < before.rank && me.rank <= 3) {
     toast(me.rank === 1 ? '👑 You’re leading the night!' : `🚀 You climbed to #${me.rank} — top 3!`, 5000);
     sfx.bonus();

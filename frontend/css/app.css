@@ -561,18 +561,6 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 .pict-emoji { font-size: clamp(3.4rem, 22vw, 5.6rem); text-align: center; line-height: 1.2; padding: 6px 0 10px; }
 
 /* ===== Avatars, hosted games, nudges ===== */
-.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
-.emoji-opt {
-  aspect-ratio: 1;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.25);
-  font-size: 1.45rem;
-  display: grid; place-items: center;
-  transition: transform 0.08s;
-}
-.emoji-opt.on { border-color: var(--gold); background: rgba(247, 197, 72, 0.18); box-shadow: 0 0 0 3px rgba(247, 197, 72, 0.2); transform: scale(1.08); }
-.modal-box .emoji-grid { margin-top: 14px; }
 .hud-stat.urgent b { color: #f87171; animation: urgentPulse 0.5s infinite alternate; }
 @keyframes urgentPulse { to { transform: scale(1.15); } }
 

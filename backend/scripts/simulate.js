@@ -123,10 +123,9 @@ async function tapLoop(p) {
 async function guest(i) {
   await sleep(i * rand(1200, 3000)); // people trickle in
   const chapter = settings.chapters?.length ? pick(settings.chapters) : pick(CHAPTERS);
-  const emoji = pick(settings.emojis || ['']); // avatars make the rehearsal board look like the real night
   const body = roster
-    ? { phone: roster[i % roster.length].phones[0], chapter, emoji }
-    : { name: `${pick(FIRST)} ${pick(LAST)}`, business: pick(BIZ), chapter, emoji };
+    ? { phone: roster[i % roster.length].phones[0], chapter }
+    : { name: `${pick(FIRST)} ${pick(LAST)}`, business: pick(BIZ), chapter };
   const { token, player } = await call('/api/join', { method: 'POST', body });
   const name = player.name;
   const p = { name, token, skill: Math.random() };

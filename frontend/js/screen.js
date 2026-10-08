@@ -34,8 +34,8 @@ let drawing = false;
 
 const gameById = (id) => games.find((g) => g.id === id);
 const setMode = (mode) => (document.body.dataset.mode = mode);
-const avatar = (e) => e.emoji || initials(e.name);
-const withEmoji = (e) => `${e.emoji ? `${e.emoji} ` : ''}${esc(e.name)}`;
+const avatar = (e) => initials(e.name); // behind the photo; seen only when a guest has none
+const withEmoji = (e) => esc(e.name);
 
 function setHeader(p) {
   if (p.title || p.eventTitle) {
@@ -72,7 +72,6 @@ function updateRow(r, e) {
     // Photo when the guest has one, else emoji or initials (the img removes itself if there's no file).
     const av = el.querySelector('.av');
     av.innerHTML = `<img src="${photoUrl(e.name)}" alt="" onerror="this.remove()"><span>${esc(avatar(e))}</span>`;
-    av.classList.toggle('emoji', Boolean(e.emoji));
     av.style.setProperty('--h', hue(e.name));
     r.name = e.name;
     r.emoji = e.emoji;
@@ -543,7 +542,7 @@ async function runDraw(d) {
   const canvas = $('#wheel');
   const ctx = canvas.getContext('2d');
   const R = 480, cx = 500, cy = 500;
-  const label = (p) => (n > 30 ? p.emoji || initials(p.name) : `${p.emoji ? `${p.emoji} ` : ''}${p.name.split(' ')[0]}`);
+  const label = (p) => (n > 30 ? initials(p.name) : p.name.split(' ')[0]);
   function draw(theta) {
     ctx.clearRect(0, 0, 1000, 1000);
     for (let i = 0; i < n; i++) {
@@ -593,7 +592,7 @@ async function runDraw(d) {
     const idx = underPointer(theta);
     if (idx !== lastIdx) {
       lastIdx = idx;
-      $('#wheel-center').textContent = names[idx].emoji || '🎡';
+      $('#wheel-center').textContent = initials(names[idx].name);
       if (p < 0.97) sfx.tick();
     }
     if (p < 1) requestAnimationFrame(frame);
@@ -601,7 +600,7 @@ async function runDraw(d) {
   await sleep(T + 60);
   spinning = false;
   draw(target);
-  $('#wheel-center').textContent = d.winner.emoji || '🎉';
+  $('#wheel-center').textContent = '🎉';
   $('#draw-winner').innerHTML = `<small>And the winner is…</small><div class="draw-photo"><img src="${photoUrl(d.winner.name)}" alt="" onerror="this.parentElement.remove()"></div><b>${withEmoji(d.winner)}</b>${d.winner.business ? `<span>${esc(d.winner.business)}</span>` : ''}`;
   sfx.win();
   confetti({ duration: 6000, count: 260 });

@@ -371,7 +371,7 @@ function renderDrawCard() {
   $('#draw-count').textContent = list.length ? `${list.length} winner${list.length === 1 ? '' : 's'} so far` : 'No draws yet';
   $('#draw-list').innerHTML = [...list]
     .reverse()
-    .map((d) => `<li>#${d.no} · <b>${d.emoji ? `${esc(d.emoji)} ` : ''}${esc(d.name)}</b> <span class="muted">${new Date(d.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></li>`)
+    .map((d) => `<li>#${d.no} · <b>${esc(d.name)}</b> <span class="muted">${new Date(d.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></li>`)
     .join('');
 }
 
@@ -388,7 +388,7 @@ function renderPlayers() {
         .map(
           (p) => `<tr>
         <td class="num">${p.rank ?? '<span class="muted">–</span>'}</td>
-        <td><span class="pthumb"><img src="${photoUrl(p.name)}" alt="" onerror="this.parentElement.remove()"></span><b>${p.emoji ? `${esc(p.emoji)} ` : ''}${esc(p.name)}</b></td>
+        <td><span class="pthumb"><img src="${photoUrl(p.name)}" alt="" onerror="this.parentElement.remove()"></span><b>${esc(p.name)}</b></td>
         <td>${esc(p.business) || '<span class="muted">–</span>'}</td>
         <td>${esc(p.chapter) || '<span class="muted">–</span>'}</td>
         ${showPhone ? `<td>${esc(p.phone) || '<span class="muted">–</span>'}</td>` : ''}
