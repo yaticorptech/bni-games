@@ -58,7 +58,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
   border-bottom: 1px solid var(--line);
 }
 .brandbar img { display: block; width: auto; }
-.bb-bni { height: 30px; border-radius: 6px; background: #fff; }
+.bb-bni { height: 34px; border-radius: 5px; background: #fff; }
 .bb-yc { height: 20px; opacity: 0.95; }
 
 .view {
