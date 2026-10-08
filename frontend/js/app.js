@@ -14,7 +14,7 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const S = {
   settings: null,
   games: [],
-  me: null, // { player, games: {id: {best, used, left}}, total, rank, ranked, hidden, top, team }
+  me: null, // { player, games: {id: {points, best, used, left}}, total, rank, ranked, hidden, top, team }
   view: 'boot',
   round: null, // Team Tap Battle round state from the server
   roundAt: 0, // performance.now() when `round` arrived — timers run from there
@@ -112,7 +112,7 @@ function renderJoin() {
     <form id="join-form" class="card form" autocomplete="on" novalidate>
       ${fields}
       <button class="btn btn-primary btn-lg" type="submit">${byPhone ? 'Log in →' : 'Let’s play →'}</button>
-      <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.filter((g) => !g.hosted).length} quick games · your best score in each counts · watch the big screen!</p>
+      <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.filter((g) => !g.hosted).length} quick games · every try adds to your total · watch the big screen!</p>
     </form>`;
 
   const form = $('#join-form');
@@ -174,8 +174,8 @@ function gameCardHtml(g) {
   const open = s.playOpen && s.enabledGames.includes(g.id);
   const done = info.left === 0;
   const tries = info.left === null ? 'unlimited tries' : `${info.left} ${info.left === 1 ? 'try' : 'tries'} left`;
-  const status = info.best != null ? `Best <b>${fmt(info.best)}</b>` : 'Not played yet';
-  const cta = !open ? 'Closed' : done ? 'Done ✓' : info.best != null ? 'Again' : 'Play';
+  const status = info.points != null ? `<b>${fmt(info.points)}</b> pts from ${info.used} ${info.used === 1 ? 'try' : 'tries'}` : 'Not played yet';
+  const cta = !open ? 'Closed' : done ? 'Done ✓' : info.points != null ? 'Again' : 'Play';
   const cls = !open ? 'is-off' : done ? 'is-done' : '';
   return `
     <button class="game-card ${cls}" data-game="${g.id}" ${!open || done ? 'disabled' : ''}
@@ -595,8 +595,8 @@ async function openGame(gameId) {
   const info = S.me.games[gameId];
   const triesLine =
     info.left === null
-      ? 'Unlimited tries — your best score counts.'
-      : `This uses 1 of your ${info.left} remaining ${info.left === 1 ? 'try' : 'tries'}. Your best score counts.`;
+      ? 'Unlimited tries — every score adds to your total.'
+      : `This uses 1 of your ${info.left} remaining ${info.left === 1 ? 'try' : 'tries'}. Every score adds to your total.`;
   const ok = await modal({
     title: `${g.emoji} ${esc(g.name)}`,
     html: `<ul class="howto">${g.howTo.map((h) => `<li>${esc(h)}</li>`).join('')}</ul><p class="fine">${triesLine}</p>`,
@@ -767,7 +767,8 @@ function showResult(g, r) {
       <div class="eyebrow">${esc(g.name)}</div>
       <div class="result-score" id="res-score" data-value="0">0</div>
       <div class="result-sub">points</div>
-      ${r.isBest ? '<div class="badge-best">🎉 New personal best!</div>' : `<p class="fine">Your best: <b>${fmt(r.best)}</b></p>`}
+      ${r.isBest && r.tries > 1 ? '<div class="badge-best">🎉 New personal best!</div>' : ''}
+      <p class="fine">Added to your total · ${esc(g.name)}: <b>${fmt(r.gameTotal)}</b> pts${r.tries > 1 ? ` from ${r.tries} tries` : ''}</p>
       <p class="result-meta">${esc(metaLine(g.id, r.meta))}</p>
       <div class="result-stats">
         <div><span>Total score</span><b>${fmt(r.total)}</b></div>

@@ -101,7 +101,7 @@ function updateRow(r, e) {
     .map((g) => {
       const v = e.scores[g.id];
       const isLive = Boolean(e.live && e.live.gameId === g.id);
-      const shown = isLive ? Math.max(e.live.score, v ?? 0) : v;
+      const shown = isLive ? (v ?? 0) + e.live.score : v; // this game's points so far, plus the running try
       return `<span class="gchip ${shown == null ? 'off' : ''} ${isLive ? 'live' : ''}">${g.emoji}<b>${shown == null ? '–' : shown}</b></span>`;
     })
     .join('');
@@ -724,7 +724,7 @@ function onBoard(p) {
 async function boot() {
   const st = await api('/api/state');
   games = st.games;
-  $('.qr-sub').textContent = `${games.filter((g) => !g.hosted).length} quick games · best scores count`;
+  $('.qr-sub').textContent = `${games.filter((g) => !g.hosted).length} quick games · every try counts`;
   setHeader(st.settings);
   $('#join-url').textContent = st.joinUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const qr = apiUrl(`/api/qr.svg?t=${Date.now()}`);

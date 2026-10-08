@@ -80,7 +80,7 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 .board-wrap { position: relative; display: flex; flex-direction: column; min-height: 0; }
 .board-head, .row {
   display: grid;
-  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.8rem 9rem; /* totals up to 9,000 fit at the #1 size */
+  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.8rem 10.5rem; /* five-digit totals fit at the #1 size */
   align-items: center;
   gap: 0.9rem;
 }

@@ -450,12 +450,21 @@ class GameState extends EventEmitter {
     return limit > 0 ? Math.max(0, limit - used) : null;
   }
 
+  /** A player's best single finished try in a game, or null. */
+  bestScore(playerId, gameId) {
+    let best = null;
+    for (const a of this.attempts.values()) {
+      if (a.playerId === playerId && a.gameId === gameId && a.score != null && (best == null || a.score > best)) best = a.score;
+    }
+    return best;
+  }
+
   me(player) {
     const row = this.board().rankById.get(player.id);
     const used = this.usedAttempts(player.id);
     const games = {};
     for (const g of GAMES) {
-      games[g.id] = { best: row?.scores[g.id] ?? null, used: used[g.id], left: this.attemptsLeft(used[g.id]) };
+      games[g.id] = { points: row?.scores[g.id] ?? null, best: this.bestScore(player.id, g.id), used: used[g.id], left: this.attemptsLeft(used[g.id]) };
     }
     return { player: publicPlayer(player), games, ...this.livePayload(player.id) };
   }
@@ -534,7 +543,7 @@ class GameState extends EventEmitter {
       elapsedMs,
       runtime: this.runtimes.get(a.id),
     });
-    const prevBest = this.board(false).rankById.get(player.id)?.scores[a.gameId];
+    const prevBest = this.bestScore(player.id, a.gameId); // best single try so far, for the "new best" badge
     Object.assign(a, { score: Math.round(score), meta, finishedAt: Date.now(), pb: prevBest == null || score > prevBest });
     this.runtimes.delete(a.id);
     this.liveScores.delete(a.id); // the confirmed score takes over from the running one
@@ -588,7 +597,8 @@ class GameState extends EventEmitter {
       score: a.score,
       meta: a.meta,
       isBest: a.pb,
-      best: row?.scores[a.gameId] ?? a.score,
+      gameTotal: row?.scores[a.gameId] ?? a.score, // this game's tries added up
+      tries: used,
       total: row?.total ?? 0,
       rank: this.hidden ? null : row?.rank ?? null,
       ranked: this.board().ranked.length,
@@ -922,10 +932,10 @@ class GameState extends EventEmitter {
   // ------------------------------------------------------------- leaderboard
 
   /**
-   * Total = sum of each player's best score per game. Ties go to whoever reached the total
-   * first. With `includeLive` (the default) games in progress count provisionally, so the big
-   * screen moves while people play; the reveal, Admin and the CSV use confirmed scores only.
-   * Cached until the next change.
+   * Every finished try counts: a player's total (and their points per game) is all their
+   * scores added up. Ties go to whoever reached the total first. With `includeLive` (the
+   * default) games in progress count provisionally, so the big screen moves while people
+   * play; the reveal, Admin and the CSV use confirmed scores only. Cached until the next change.
    */
   board(includeLive = true) {
     const cached = includeLive ? this.cache : this.cacheConfirmed;
@@ -942,12 +952,10 @@ class GameState extends EventEmitter {
         rows.set(p.id, row);
       }
       row.plays++;
-      const prev = row.scores[a.gameId];
-      if (prev == null || a.score > prev) {
-        row.total += a.score - (prev || 0);
-        row.scores[a.gameId] = a.score;
-        row.reachedAt = a.finishedAt;
-      }
+      row.total += a.score;
+      row.scores[a.gameId] = (row.scores[a.gameId] || 0) + a.score;
+      row.reachedAt = a.finishedAt;
+      // The game champion is still the best single try.
       if (!leaders[a.gameId] || a.score > leaders[a.gameId].score) leaders[a.gameId] = { id: p.id, name: p.name, score: a.score };
     }
     if (includeLive) {
@@ -961,13 +969,9 @@ class GameState extends EventEmitter {
           row = { ...publicPlayer(p), total: 0, scores: {}, plays: 0, reachedAt: now };
           rows.set(p.id, row);
         }
-        const best = row.scores[l.gameId];
-        const counts = best == null || l.score > best;
-        if (counts) {
-          row.total += l.score - (best || 0);
-          row.reachedAt = now;
-        }
-        row.live = { gameId: l.gameId, score: l.score, counts };
+        row.total += l.score;
+        row.reachedAt = now;
+        row.live = { gameId: l.gameId, score: l.score };
       }
     }
     const ranked = [...rows.values()].sort((x, y) => y.total - x.total || x.reachedAt - y.reachedAt);

@@ -79,7 +79,7 @@ function renderControls() {
       </div>
     </div>
     <div class="ctl">
-      <div class="ctl-label">Tries per game<small>Best score per game counts</small></div>
+      <div class="ctl-label">Tries per game<small>Every try adds to the total</small></div>
       <div class="ctl-body"><select id="tries">${triesOpts}</select></div>
     </div>
     <div class="ctl">
