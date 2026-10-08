@@ -140,6 +140,22 @@ const pictionary = quizLike({
 
 const GAMES = [
   {
+    id: 'frenzy',
+    name: 'Tap Frenzy',
+    emoji: '👆',
+    color: '#ec4899',
+    tagline: 'Tap like crazy for 10 seconds!',
+    duration: '10 sec',
+    howTo: ['One big button — tap it as fast as you can', '10 seconds on the clock', '7 points a tap · 143 taps is a perfect 1000'],
+    minMs: 9500,
+    score(r, { elapsedMs }) {
+      // 143 taps already scores 1000; the caps only rule out autoclickers (two thumbs manage ~16 a second).
+      const taps = count(r.taps, 200, 'taps');
+      if (taps > 18 * Math.max(10, elapsedMs / 1000)) throw invalid('too many taps');
+      return { score: clamp(taps * 7, 0, MAX), meta: { taps, perSec: taps / 10 } };
+    },
+  },
+  {
     id: 'rush',
     name: 'Referral Rush',
     emoji: '🤝',
@@ -255,22 +271,6 @@ const GAMES = [
       const wrong = count(r.wrong, 100, 'wrong');
       if (correct + wrong > 100) throw invalid('too many answers');
       return { score: clamp(correct * 35 - wrong * 15, 0, MAX), meta: { correct, wrong } };
-    },
-  },
-  {
-    id: 'frenzy',
-    name: 'Tap Frenzy',
-    emoji: '👆',
-    color: '#ec4899',
-    tagline: 'Tap like crazy for 10 seconds!',
-    duration: '10 sec',
-    howTo: ['One big button — tap it as fast as you can', '10 seconds on the clock', '7 points a tap · 143 taps is a perfect 1000'],
-    minMs: 9500,
-    score(r, { elapsedMs }) {
-      // 143 taps already scores 1000; the caps only rule out autoclickers (two thumbs manage ~16 a second).
-      const taps = count(r.taps, 200, 'taps');
-      if (taps > 18 * Math.max(10, elapsedMs / 1000)) throw invalid('too many taps');
-      return { score: clamp(taps * 7, 0, MAX), meta: { taps, perSec: taps / 10 } };
     },
   },
   {

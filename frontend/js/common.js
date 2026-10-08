@@ -251,6 +251,10 @@ export const sfx = {
   rise: () => tone(330, { dur: 0.32, type: 'sine', vol: 0.09, to: 1320 }),
   /** Tiny click for each tap in the team battle. */
   tap: () => tone(1500, { dur: 0.025, type: 'triangle', vol: 0.035, to: 900 }),
+  /** Tap click whose pitch climbs with the pace (taps per second), so speed is audible. */
+  tapAt: (pace = 0) => { const f = 900 + Math.min(16, pace) * 70; tone(f, { dur: 0.03, type: 'triangle', vol: 0.04, to: f * 0.6 }); },
+  /** Fever mode engaged: a quick bright arpeggio. */
+  fever: () => [659, 784, 988, 1319].forEach((f, i) => tone(f, { dur: 0.09, type: 'square', vol: 0.045, delay: i * 0.05 })),
   /** Time's up. */
   buzz: () => { tone(170, { dur: 0.42, type: 'square', vol: 0.05, to: 120 }); tone(173, { dur: 0.42, type: 'sawtooth', vol: 0.03, to: 118 }); },
   whoosh: (delay = 0) => noise({ dur: 0.35, vol: 0.08, freq: 500, to: 3200, q: 1.2, attack: 0.08, delay }),

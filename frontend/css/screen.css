@@ -80,7 +80,7 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 .board-wrap { position: relative; display: flex; flex-direction: column; min-height: 0; }
 .board-head, .row {
   display: grid;
-  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.8rem 10.5rem; /* five-digit totals fit at the #1 size */
+  grid-template-columns: 4rem 3.6rem minmax(0, 1fr) auto 2.4rem 9.8rem; /* five-digit totals fit at the #1 size */
   align-items: center;
   gap: 0.9rem;
 }
@@ -146,16 +146,16 @@ body:not([data-mode="live"]) .top-right .pill:not(.live-pill) { display: none; }
 }
 .gchip b { font-size: 1rem; font-variant-numeric: tabular-nums; }
 .gchip.off { opacity: 0.3; }
-.chips.many { gap: 0.25rem; }
-.chips.many .gchip { width: 3.1rem; font-size: 0.85rem; }
-.chips.many .gchip b { font-size: 0.9rem; }
-.games-head.many { gap: 0.25rem; }
-.games-head.many span { width: 3.1rem; font-size: 1rem; }
+.chips.many { gap: 0.2rem; }
+.chips.many .gchip { width: 2.8rem; font-size: 0.8rem; }
+.chips.many .gchip b { font-size: 0.88rem; }
+.games-head.many { gap: 0.2rem; }
+.games-head.many span { width: 2.8rem; font-size: 1rem; }
 .delta { font-weight: 900; font-size: 1.2rem; text-align: center; }
 .delta.up { color: #4ade80; }
 .delta.down { color: #f87171; }
 .tt { text-align: right; font-size: 2.1rem; font-weight: 900; font-variant-numeric: tabular-nums; }
-.r1 .tt { font-size: 2.7rem; color: var(--gold); }
+.r1 .tt { font-size: 2.55rem; color: var(--gold); }
 .r2 .tt, .r3 .tt { font-size: 2.4rem; }
 .row.bump::after {
   content: "";

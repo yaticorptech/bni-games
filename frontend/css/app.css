@@ -674,22 +674,39 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 }
 
 /* ----- Tap Frenzy ----- */
-.frenzy { --heat: 0; flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 16px; }
-.frenzy-hint { margin: 0; color: var(--muted); font-size: 0.95rem; text-align: center; min-height: 1.4em; }
+.frenzy { --heat: 0; flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(8px, 2vh, 18px); padding: 10px 16px; }
+.frenzy-hint { margin: 0; color: var(--muted); font-size: clamp(0.85rem, 2.8vw, 1rem); text-align: center; min-height: 1.4em; }
+.frenzy-wrap { position: relative; width: min(76vw, 42dvh, 360px); height: min(76vw, 42dvh, 360px); flex: none; margin: 16px 0 12px; }
+.frenzy-ring { position: absolute; inset: -11px; width: calc(100% + 22px); height: calc(100% + 22px); transform: rotate(-90deg); pointer-events: none; }
+.frenzy-ring circle { fill: none; stroke-width: 5; }
+.frenzy-ring .track { stroke: rgba(255, 255, 255, 0.12); }
+.frenzy-ring .left { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
 .frenzy-btn {
-  width: min(72vw, 46vh); height: min(72vw, 46vh);
+  width: 100%; height: 100%;
   border: 0; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #f9a8d4, #ec4899 55%, #9d174d);
   box-shadow: 0 0 0 calc(6px + var(--heat) * 22px) rgba(236, 72, 153, calc(0.18 + var(--heat) * 0.35)), 0 18px 50px rgba(236, 72, 153, 0.45);
   color: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  transition: box-shadow 0.25s;
+  transition: box-shadow 0.25s, background 0.4s;
 }
+.frenzy[data-tier="1"] .frenzy-btn { background: radial-gradient(circle at 35% 30%, #fda4af, #f43f5e 55%, #9f1239); box-shadow: 0 0 0 calc(6px + var(--heat) * 22px) rgba(244, 63, 94, calc(0.18 + var(--heat) * 0.35)), 0 18px 50px rgba(244, 63, 94, 0.45); }
+.frenzy[data-tier="2"] .frenzy-btn { background: radial-gradient(circle at 35% 30%, #fdba74, #f97316 55%, #9a3412); box-shadow: 0 0 0 calc(6px + var(--heat) * 22px) rgba(249, 115, 22, calc(0.18 + var(--heat) * 0.35)), 0 18px 50px rgba(249, 115, 22, 0.5); }
+.frenzy[data-tier="3"] .frenzy-btn { background: radial-gradient(circle at 35% 30%, #fde68a, #f7c548 55%, #b45309); box-shadow: 0 0 0 28px rgba(247, 197, 72, 0.45), 0 18px 60px rgba(247, 197, 72, 0.6); animation: feverPulse 0.45s ease-in-out infinite alternate; }
+@keyframes feverPulse { from { transform: scale(1); } to { transform: scale(1.04); } }
 .frenzy-btn.hit { animation: frenzyHit 0.1s ease-out; }
+.frenzy[data-tier="3"] .frenzy-btn.hit { animation: frenzyHit 0.1s ease-out, feverPulse 0.45s ease-in-out infinite alternate; }
 @keyframes frenzyHit { 50% { transform: scale(0.94); } }
-.frenzy-btn.over { filter: grayscale(0.5); transition: filter 0.4s; }
-.frenzy-count { font-size: clamp(3.5rem, 22vw, 6rem); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
-.frenzy-sub { font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; }
-.frenzy-rate { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
-.frenzy-pop { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); font-weight: 900; font-size: 1.6rem; white-space: nowrap; pointer-events: none; animation: frenzyPop 0.9s ease-out forwards; }
+.frenzy.final .frenzy-btn { filter: grayscale(0.4); animation: none; transition: filter 0.4s; }
+.frenzy.final .frenzy-count { animation: pop 0.5s cubic-bezier(.2, 1.6, .4, 1); }
+.frenzy-count { font-size: clamp(3rem, 20vw, 5.6rem); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
+.frenzy-sub { font-size: clamp(0.7rem, 2.4vw, 0.85rem); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; }
+.frenzy-tier { font-weight: 900; color: var(--gold); font-size: clamp(0.95rem, 3.4vw, 1.2rem); font-variant-numeric: tabular-nums; min-height: 1.4em; text-align: center; }
+.frenzy[data-tier="3"] .frenzy-tier { animation: urgentPulse 0.4s infinite alternate; }
+.frenzy-pop { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); font-weight: 900; font-size: clamp(1.2rem, 5vw, 1.6rem); white-space: nowrap; pointer-events: none; z-index: 2; animation: frenzyPop 0.9s ease-out forwards; }
 @keyframes frenzyPop { from { opacity: 0; transform: translate(-50%, 10px) scale(0.6); } 25% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } to { opacity: 0; transform: translate(-50%, -30px) scale(1); } }
+.frenzy-plus { position: absolute; transform: translate(-50%, -50%); font-weight: 900; font-size: 1.25rem; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); pointer-events: none; z-index: 2; animation: frenzyPlus 0.6s ease-out forwards; }
+@keyframes frenzyPlus { to { transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% - 70px)) scale(1.3); opacity: 0; } }
+.frenzy-ripple { position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85); transform: translate(-50%, -50%); pointer-events: none; animation: frenzyRipple 0.5s ease-out forwards; }
+@keyframes frenzyRipple { to { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
+@media (max-height: 600px) { .frenzy { gap: 6px; } .frenzy-hint { font-size: 0.8rem; } }

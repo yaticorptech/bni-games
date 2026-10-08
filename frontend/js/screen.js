@@ -133,6 +133,18 @@ function updateRow(r, e) {
   r.rank = e.rank;
 }
 
+/** Shrinks a long name just enough to fit its column, instead of cutting it to "Soujan…". */
+function fitName(r) {
+  const nm = r.el.querySelector('.nm');
+  const key = `${r.name}|${nm.clientWidth}|${r.rank <= 3}`;
+  if (r.fitKey === key) return;
+  r.fitKey = key;
+  nm.style.fontSize = '';
+  if (nm.scrollWidth <= nm.clientWidth) return;
+  const px = parseFloat(getComputedStyle(nm).fontSize);
+  nm.style.fontSize = `${Math.max(px * 0.6, px * (nm.clientWidth / nm.scrollWidth) * 0.98)}px`;
+}
+
 /** Re-render the top list, animating moved rows from their old position (FLIP). */
 function renderBoard(entries) {
   const board = $('#board');
@@ -161,6 +173,7 @@ function renderBoard(entries) {
   }
   $('#empty').classList.toggle('hidden', entries.length > 0);
   if (!visible) return;
+  for (const e of entries) fitName(rows.get(e.id));
 
   for (const e of entries) {
     const r = rows.get(e.id);
