@@ -813,6 +813,19 @@ function connect() {
   if (socket) socket.disconnect();
   socket = connectSocket({ token: getToken() });
 
+  // A reconnect usually means the server was redeployed: pick up a changed game list or order.
+  let connects = 0;
+  socket.on('connect', async () => {
+    if (connects++ === 0) return;
+    try {
+      const st = await api('/api/state');
+      const changed = JSON.stringify(st.games.map((g) => g.id)) !== JSON.stringify(S.games.map((g) => g.id));
+      S.games = st.games;
+      S.settings = st.settings;
+      if (changed && S.view === 'hub' && S.me) renderHub();
+    } catch { /* keep what we have */ }
+  });
+
   socket.on('settings', (settings) => {
     if (JSON.stringify(settings) === JSON.stringify(S.settings)) return;
     const closedNow = S.settings && S.settings.playOpen && !settings.playOpen;

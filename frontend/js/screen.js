@@ -737,19 +737,35 @@ function onBoard(p) {
   }
 }
 
+function renderGamesHead() {
+  $('#games-head').innerHTML = chipGames().map((g) => `<span title="${esc(g.name)}">${g.emoji}</span>`).join('');
+  $('#games-head').classList.toggle('many', chipGames().length > 6);
+}
+
+/** Re-read the game list and settings — the server was redeployed or we reconnected, and the order or titles may have changed. */
+async function refreshGames() {
+  try {
+    const st = await api('/api/state');
+    games = st.games;
+    setHeader(st.settings);
+    renderGamesHead(); // rows pick up the new column order on the next board update, which follows a connect
+  } catch { /* keep what we have */ }
+}
+
 async function boot() {
   const st = await api('/api/state');
   games = st.games;
   setHeader(st.settings);
   const qr = apiUrl(`/api/qr.svg?t=${Date.now()}`);
   document.querySelectorAll('img.qr').forEach((img) => (img.src = qr));
-  $('#games-head').innerHTML = chipGames().map((g) => `<span title="${esc(g.name)}">${g.emoji}</span>`).join('');
-  $('#games-head').classList.toggle('many', chipGames().length > 6);
+  renderGamesHead();
 
   const socket = connectSocket({ role: 'screen' });
+  let connects = 0;
   socket.on('connect', () => {
     $('#live-pill').classList.remove('off');
     $('#live-text').textContent = 'LIVE';
+    if (connects++ > 0) refreshGames(); // a reconnect usually means a redeploy: never show a stale game order
   });
   socket.on('disconnect', () => {
     $('#live-pill').classList.add('off');
