@@ -6,8 +6,9 @@ import colors from './games/colors.js';
 import pictionary from './games/pictionary.js';
 import simon from './games/simon.js';
 import odd from './games/odd.js';
+import frenzy from './games/frenzy.js';
 
-const MODULES = { rush, reflex, memory, colors, pictionary, simon, odd };
+const MODULES = { rush, reflex, memory, colors, pictionary, simon, odd, frenzy };
 const VIEWS = ['boot', 'join', 'hub', 'game', 'result', 'tap', 'quiz'];
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -753,6 +754,7 @@ function metaLine(gameId, m) {
     case 'pictionary': return `${m.correct} of ${m.total} professions guessed`;
     case 'simon': return m.level ? `Sequence of ${m.level} completed` : 'Slipped on the first pad — next time!';
     case 'odd': return `${m.correct} spotted · ${m.wrong} wrong`;
+    case 'frenzy': return `${m.taps} taps · ${m.perSec} a second`;
     default: return '';
   }
 }

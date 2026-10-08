@@ -30,6 +30,7 @@ Locally the backend also serves the pages in `frontend/`, so everything runs fro
 | 🎭 **Emoji Pictionary** (10 puzzles) | Guess the profession from two emojis, 8s each (edit `backend/config/pictionary.json`) | Correct = 50 + up to 50 speed bonus |
 | 🎵 **Handshake Sequence** | Simon says: repeat a growing sequence of pads until you slip | 80 per level to 5, then 120 per level — level 10 = 1000 |
 | 🔍 **Odd One Out** (30s) | Spot the one different emoji in a growing grid | Right +35 · Wrong −15 |
+| 👆 **Tap Frenzy** (10s) | Tap the big button as fast as you can | 7 a tap · 143 taps = 1000 |
 | 📺 **Live Quiz** (hosted) | The organiser asks questions on the big screen; answer on your phone | Correct = 50 + up to 50 speed bonus, max 1000 |
 
 A player's **total = every finished try added together** (each try scores up to 1000, so more tries mean more points — the per-game chips on the big screen add up the same way, while "Game champions" is still the best single try). Ties go to whoever reached that total first. By default each player gets **3 tries per game**; you can change this in Admin (1–10 or unlimited).

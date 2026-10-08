@@ -48,6 +48,7 @@ function estimate(gameId, r) {
     case 'colors': return clamp(r.correct * 30 - r.wrong * 15);
     case 'simon': return clamp(r.level <= 5 ? r.level * 80 : 400 + (r.level - 5) * 120);
     case 'odd': return clamp(r.correct * 35 - r.wrong * 15);
+    case 'frenzy': return clamp(r.taps * 7);
     default: return 0;
   }
 }
@@ -71,6 +72,8 @@ function fake(gameId, skill) {
     }
     case 'odd':
       return { wait: 33500, result: { correct: int(10 + 14 * skill, 16 + 14 * skill), wrong: int(0, 4 * (1.1 - skill)) } };
+    case 'frenzy':
+      return { wait: 11500, result: { taps: int(55 + 55 * skill, 80 + 60 * skill) } };
     default:
       throw new Error(`no fake for ${gameId}`);
   }

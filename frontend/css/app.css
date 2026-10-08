@@ -672,3 +672,24 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 @media (prefers-reduced-motion: reduce) {
   .hero-badge, .live-dot, .cd-num.pop, .badge-best, .stage.shake, .modal, .modal-box { animation: none; }
 }
+
+/* ----- Tap Frenzy ----- */
+.frenzy { --heat: 0; flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 16px; }
+.frenzy-hint { margin: 0; color: var(--muted); font-size: 0.95rem; text-align: center; min-height: 1.4em; }
+.frenzy-btn {
+  width: min(72vw, 46vh); height: min(72vw, 46vh);
+  border: 0; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f9a8d4, #ec4899 55%, #9d174d);
+  box-shadow: 0 0 0 calc(6px + var(--heat) * 22px) rgba(236, 72, 153, calc(0.18 + var(--heat) * 0.35)), 0 18px 50px rgba(236, 72, 153, 0.45);
+  color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: box-shadow 0.25s;
+}
+.frenzy-btn.hit { animation: frenzyHit 0.1s ease-out; }
+@keyframes frenzyHit { 50% { transform: scale(0.94); } }
+.frenzy-btn.over { filter: grayscale(0.5); transition: filter 0.4s; }
+.frenzy-count { font-size: clamp(3.5rem, 22vw, 6rem); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
+.frenzy-sub { font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; }
+.frenzy-rate { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.frenzy-pop { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); font-weight: 900; font-size: 1.6rem; white-space: nowrap; pointer-events: none; animation: frenzyPop 0.9s ease-out forwards; }
+@keyframes frenzyPop { from { opacity: 0; transform: translate(-50%, 10px) scale(0.6); } 25% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } to { opacity: 0; transform: translate(-50%, -30px) scale(1); } }
