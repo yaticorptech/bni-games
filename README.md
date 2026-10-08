@@ -115,7 +115,7 @@ The rehearsal bots (`npm run simulate`) tap along in team rounds and guess in li
 Using a custom domain for the frontend? Use it as `PUBLIC_URL`, and list any other frontend addresses in `CORS_ORIGINS` (comma-separated).
 
 **Live deployment** — both sides deploy automatically from GitHub (`main` branch of `yaticorptech/bni-games`):
-- Players / big screen / admin: https://bni-games-nine.vercel.app (`/screen`, `/admin`) — Vercel project `bni-games`, root directory `frontend`.
+- Players / big screen / admin: https://spk.yaticorp.com (`/screen`, `/admin`) — Vercel project `bni-games`, root directory `frontend`; the Vercel URL https://bni-games-nine.vercel.app still works as a fallback. The backend's `PUBLIC_URL` on Railway is `https://spk.yaticorp.com` (it sets the QR code and CORS); if the domain ever changes again, update that variable first.
 - API: https://bni-backend-production.up.railway.app — Railway project `bni-games`, service `bni-backend`, root directory `backend` (rebuilds only when `backend/` changes). Variables live in Railway; `PUBLIC_URL` and `CORS_ORIGINS` point at the Vercel aliases.
 - Local development uses a separate database (`MONGODB_DB=bni_games_dev` in `backend/.env`), so rehearsing on a laptop never touches the live event.
 
