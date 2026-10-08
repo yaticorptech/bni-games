@@ -1,0 +1,12 @@
+{
+  "name": "bni-award-games-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pages for BNI Award Night games: plain HTML/CSS/JS, deployed to Vercel as-is (no build)",
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
