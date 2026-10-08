@@ -72,9 +72,9 @@ Press **Ask**: the question fills the big screen while every phone shows the opt
 
 **Admin → Lucky Draw → Spin the wheel**: the big screen spins a wheel of everyone who has logged in (optionally only those who have played, skipping previous winners), lands on a random guest with drumroll and confetti, and the winner's phone lights up. Winners are listed in Admin.
 
-### Avatars and nudges
+### Photos, avatars and nudges
 
-Guests pick an emoji when they log in (changeable from the home screen); it shows next to their name on the big screen, in the reveal and in Admin. Phones get a nudge when someone overtakes them ("🍕 Priya just overtook you — play again!") and a cheer when they climb into the top 3.
+Drop a guest's photo at `frontend/img/players/<slug>.jpg`, where the slug is their name in lowercase with everything but letters and digits removed (`Soujanya Hegde` → `soujanyahegde.jpg`; a 320×320 square JPEG is ideal). It then appears on the big-screen rows, the leader banner, the reveal podium, the lucky-draw wheel result, the phone home screen and Admin. Guests without a photo show their emoji or initials instead. Guests pick an emoji when they log in (changeable from the home screen); it shows next to their name everywhere. Phones get a nudge when someone overtakes them ("🍕 Priya just overtook you — play again!") and a cheer when they climb into the top 3.
 
 The rehearsal bots (`npm run simulate`) tap along in team rounds and guess in live-quiz questions.
 

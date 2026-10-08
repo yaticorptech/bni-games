@@ -1,5 +1,5 @@
 // Admin panel: event controls, big-screen modes + grand reveal, players table, export, reset.
-import { api, apiUrl, connectSocket, esc, fmt, toast } from './common.js';
+import { api, apiUrl, connectSocket, esc, fmt, toast, photoUrl } from './common.js';
 
 const KEY = 'bni_games_admin_key';
 const $ = (sel) => document.querySelector(sel);
@@ -388,7 +388,7 @@ function renderPlayers() {
         .map(
           (p) => `<tr>
         <td class="num">${p.rank ?? '<span class="muted">–</span>'}</td>
-        <td><b>${p.emoji ? `${esc(p.emoji)} ` : ''}${esc(p.name)}</b></td>
+        <td><span class="pthumb"><img src="${photoUrl(p.name)}" alt="" onerror="this.parentElement.remove()"></span><b>${p.emoji ? `${esc(p.emoji)} ` : ''}${esc(p.name)}</b></td>
         <td>${esc(p.business) || '<span class="muted">–</span>'}</td>
         <td>${esc(p.chapter) || '<span class="muted">–</span>'}</td>
         ${showPhone ? `<td>${esc(p.phone) || '<span class="muted">–</span>'}</td>` : ''}

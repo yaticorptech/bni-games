@@ -99,6 +99,13 @@ export const esc = (s) =>
 
 export const fmt = (n) => Number(n || 0).toLocaleString('en-IN');
 
+/**
+ * A guest's photo, if the organiser added one: img/players/<slug>.jpg where the slug is the
+ * name in lowercase with everything but letters and digits removed ("Soujanya Hegde" →
+ * soujanyahegde.jpg). Pages render it with an onerror fallback to the emoji / initials.
+ */
+export const photoUrl = (name) => `/img/players/${String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '')}.jpg`;
+
 export const initials = (name) =>
   String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 

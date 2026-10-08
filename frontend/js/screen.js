@@ -1,7 +1,7 @@
 // Big-screen live leaderboard: live board with animated re-ranking, hidden mode, the grand
 // reveal — and the hosted moments (team tap battle, live quiz, lucky draw) as overlays on top,
 // so the screen never leaves the live board.
-import { api, apiUrl, connectSocket, esc, fmt, initials, hue, countUp, sfx, confetti, sleep } from './common.js';
+import { api, apiUrl, connectSocket, esc, fmt, initials, hue, countUp, sfx, confetti, sleep, photoUrl } from './common.js';
 
 const $ = (sel) => document.querySelector(sel);
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -60,7 +60,7 @@ function makeRow() {
     <div class="chips"></div>
     <div class="delta"></div>
     <div class="tt">0</div>`;
-  return { el, total: null, rank: null, deltaTimer: 0 };
+  return { el, total: null, rank: null, deltaTimer: 0, name: null, emoji: null };
 }
 
 function updateRow(r, e) {
@@ -68,10 +68,15 @@ function updateRow(r, e) {
   el.classList.remove('r1', 'r2', 'r3');
   if (e.rank <= 3) el.classList.add(`r${e.rank}`);
   el.querySelector('.rk').textContent = MEDALS[e.rank - 1] || e.rank;
-  const av = el.querySelector('.av');
-  av.textContent = avatar(e);
-  av.classList.toggle('emoji', Boolean(e.emoji));
-  av.style.setProperty('--h', hue(e.name));
+  if (r.name !== e.name || r.emoji !== e.emoji) {
+    // Photo when the guest has one, else emoji or initials (the img removes itself if there's no file).
+    const av = el.querySelector('.av');
+    av.innerHTML = `<img src="${photoUrl(e.name)}" alt="" onerror="this.remove()"><span>${esc(avatar(e))}</span>`;
+    av.classList.toggle('emoji', Boolean(e.emoji));
+    av.style.setProperty('--h', hue(e.name));
+    r.name = e.name;
+    r.emoji = e.emoji;
+  }
   el.querySelector('.nm').textContent = e.name;
   el.querySelector('.sb').textContent = [e.business, e.chapter].filter(Boolean).join(' · ');
   const chips = el.querySelector('.chips');
@@ -213,7 +218,7 @@ function showLeader(top) {
   bannerQueue = bannerQueue.then(async () => {
     if (document.body.dataset.mode !== 'live') return;
     const banner = $('#banner');
-    banner.innerHTML = `<div class="banner-inner"><span class="crown">👑</span>
+    banner.innerHTML = `<div class="banner-inner"><span class="crown">👑</span><img class="banner-photo" src="${photoUrl(top.name)}" alt="" onerror="this.remove()">
       <div><small>New leader!</small><b>${withEmoji(top)}</b></div>
       <span class="banner-score">${fmt(top.total)}</span></div>`;
     banner.classList.add('show');
@@ -245,6 +250,7 @@ function revealSkeleton(entries) {
 function fillSlot(slot, e) {
   if (e.rank <= 3) {
     slot.innerHTML = `<div><div class="pod-medal">${MEDALS[e.rank - 1]}</div>
+      <div class="pod-photo"><img src="${photoUrl(e.name)}" alt="" onerror="this.parentElement.remove()"></div>
       <div class="pod-name">${withEmoji(e)}</div>
       <div class="pod-sub">${esc([e.business, e.chapter].filter(Boolean).join(' · '))}</div>
       <div class="pod-total">${fmt(e.total)} pts</div></div>`;
@@ -596,7 +602,7 @@ async function runDraw(d) {
   spinning = false;
   draw(target);
   $('#wheel-center').textContent = d.winner.emoji || '🎉';
-  $('#draw-winner').innerHTML = `<small>And the winner is…</small><b>${withEmoji(d.winner)}</b>${d.winner.business ? `<span>${esc(d.winner.business)}</span>` : ''}`;
+  $('#draw-winner').innerHTML = `<small>And the winner is…</small><div class="draw-photo"><img src="${photoUrl(d.winner.name)}" alt="" onerror="this.parentElement.remove()"></div><b>${withEmoji(d.winner)}</b>${d.winner.business ? `<span>${esc(d.winner.business)}</span>` : ''}`;
   sfx.win();
   confetti({ duration: 6000, count: 260 });
   await sleep(14000);

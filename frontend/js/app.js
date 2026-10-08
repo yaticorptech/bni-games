@@ -1,4 +1,4 @@
-import { api, withRetry, connectSocket, getToken, setToken, clearToken, toast, sfx, esc, fmt, countUp, sleep, confetti, abortError, vibrate } from './common.js';
+import { api, withRetry, connectSocket, getToken, setToken, clearToken, toast, sfx, esc, fmt, countUp, sleep, confetti, abortError, vibrate, photoUrl, initials } from './common.js';
 import rush from './games/rush.js';
 import reflex from './games/reflex.js';
 import memory from './games/memory.js';
@@ -173,6 +173,7 @@ function miniBoardHtml() {
       (r) => `
       <div class="mini-row ${r.id === me.player.id ? 'me' : ''}">
         <div class="mini-rank">${['🥇', '🥈', '🥉'][r.rank - 1] || r.rank}</div>
+        <div class="mini-av"><img src="${photoUrl(r.name)}" alt="" onerror="this.remove()"><span>${esc(r.emoji || initials(r.name))}</span></div>
         <div class="mini-name">${esc(r.name)}${r.business ? `<small>${esc(r.business)}</small>` : ''}</div>
         <div class="mini-total">${fmt(r.total)}</div>
       </div>`,
@@ -208,7 +209,10 @@ function renderHub() {
   const first = me.player.name.split(' ')[0];
   $('#view-hub').innerHTML = `
     <header class="hub-head">
-      <div><div class="eyebrow">${esc(s.eventTitle)}</div><h2>Hi, ${esc(first)} ${esc(me.player.emoji || '👋')}</h2></div>
+      <div class="hub-id">
+        <div class="hub-photo"><img src="${photoUrl(me.player.name)}" alt="" onerror="this.parentElement.remove()"></div>
+        <div><div class="eyebrow">${esc(s.eventTitle)}</div><h2>Hi, ${esc(first)} ${esc(me.player.emoji || '👋')}</h2></div>
+      </div>
       <button class="icon-btn" id="mute-btn" aria-label="Toggle sound">${sfx.muted ? '🔇' : '🔊'}</button>
     </header>
     <section class="score-card">
@@ -604,7 +608,7 @@ function onLuckyDraw(d) {
       vibrate([120, 60, 120, 60, 400]);
       modal({
         title: '🎉 YOU WON THE LUCKY DRAW!',
-        html: `<p class="fine">Look at the big screen, ${esc(S.me.player.name.split(' ')[0])} — and go collect your prize!</p>`,
+        html: `<div class="win-photo"><img src="${photoUrl(S.me.player.name)}" alt="" onerror="this.parentElement.remove()"></div><p class="fine">Look at the big screen, ${esc(S.me.player.name.split(' ')[0])} — and go collect your prize!</p>`,
         ok: 'Woohoo! 🙌',
         cancel: 'Close',
       });
