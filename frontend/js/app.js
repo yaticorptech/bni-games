@@ -119,7 +119,8 @@ function renderJoin() {
         <input type="hidden" name="emoji" value="${defaultEmoji}"></div>
       <button class="btn btn-primary btn-lg" type="submit">${byPhone ? 'Log in →' : 'Let’s play →'}</button>
       <p class="fine center">${byPhone ? 'Use the number you registered with · ' : ''}${S.games.length} quick games · your best score in each counts · watch the big screen!</p>
-    </form>`;
+    </form>
+    <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
 
   const form = $('#join-form');
   $('#emoji-grid').addEventListener('click', (e) => {
@@ -224,7 +225,8 @@ function renderHub() {
     <section class="games">${S.games.filter((g) => !g.hosted).map(gameCardHtml).join('')}</section>
     <section class="card mini-board" id="mini-board">${miniBoardHtml()}</section>
     <footer class="hub-foot">Playing as <b>${esc(me.player.name)}</b>${me.player.business ? ` · ${esc(me.player.business)}` : ''}<br>
-      <button class="link" id="emoji-btn">Change emoji</button> · <button class="link" id="switch-btn">Not you? Switch player</button></footer>`;
+      <button class="link" id="emoji-btn">Change emoji</button> · <button class="link" id="switch-btn">Not you? Switch player</button></footer>
+    <div class="powered"><span>Powered by</span><img src="/img/brand/yaticorp-white.png" alt="Yaticorp"></div>`;
 
   $('#view-hub').querySelectorAll('.game-card').forEach((el) => el.addEventListener('click', () => openGame(el.dataset.game)));
   $('#mute-btn').onclick = (e) => {

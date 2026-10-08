@@ -9,7 +9,9 @@
 .dash { max-width: 1280px; margin: 0 auto; padding: 22px 20px 40px; display: grid; gap: 16px; }
 .ad-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .ad-head h1 { font-size: 1.7rem; margin-top: 4px; }
-.ad-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ad-logo { height: 20px; margin-right: 10px; opacity: 0.9; }
+.login-logo { height: 26px; margin: 0 auto 18px; display: block; opacity: 0.9; }
 .ad-links .btn { min-height: 42px; font-size: 0.92rem; }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }

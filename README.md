@@ -143,6 +143,10 @@ Using a custom domain for the frontend? Use it as `PUBLIC_URL`, and list any oth
 
 **Frontend:** `frontend/js/config.js` sets `API_URL`, the backend address. Leave it `''` when the backend serves the pages (local/laptop mode); the backend then ignores it anyway.
 
+## Branding
+
+The platform carries Yaticorp branding: the wordmark (`frontend/img/brand/yaticorp-white.png`) appears as "Powered by" on the big screen, the phone join/home screens and Admin, and the blue mark is the tab/home-screen icon (`mark.png`, `icon-512.png`). The brand blue is `--brand` in the stylesheets. Event-specific text (title, tagline) stays editable in Admin.
+
 ## Fair play
 
 Scores are **calculated on the server** from what happened in the game (hits, reaction times, moves), never taken directly from the phone. Every value is range-checked, and the server measures each game's duration itself. A result that comes back faster than the game can be played is rejected. The quiz is fully server-side: answers never reach the phone and every answer is timed by the server. This won't stop a determined hacker, but it does stop the obvious tricks. The admin can remove any suspicious player.

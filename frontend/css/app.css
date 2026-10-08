@@ -11,6 +11,7 @@
   --gold: #f7c548;
   --gold-2: #d9a21b;
   --green: #22c55e;
+  --brand: #0095da; /* Yaticorp blue */
   --radius: 18px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -93,6 +94,11 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
 
 /* ----- boot ----- */
 .boot { display: grid; place-content: center; justify-items: center; gap: 14px; color: var(--muted); }
+.boot-logo { height: 30px; margin-bottom: 18px; opacity: 0.9; }
+
+/* ----- "Powered by Yaticorp" ----- */
+.powered { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px; color: var(--muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+.powered img { height: 16px; }
 .spinner {
   width: 38px; height: 38px;
   border-radius: 50%;
