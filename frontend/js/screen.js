@@ -227,7 +227,7 @@ function renderPlaying(list) {
   syncPanels();
   if (!list.length) return;
   $('#playing').innerHTML = list
-    .slice(0, 4)
+    .slice(0, 5)
     .map((x) => {
       const g = gameById(x.gameId);
       return `<li>
@@ -727,9 +727,7 @@ function onBoard(p) {
 async function boot() {
   const st = await api('/api/state');
   games = st.games;
-  $('.qr-sub').textContent = `${games.filter((g) => !g.hosted).length} quick games · every try counts`;
   setHeader(st.settings);
-  $('#join-url').textContent = st.joinUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const qr = apiUrl(`/api/qr.svg?t=${Date.now()}`);
   document.querySelectorAll('img.qr').forEach((img) => (img.src = qr));
   $('#games-head').innerHTML = chipGames().map((g) => `<span title="${esc(g.name)}">${g.emoji}</span>`).join('');
