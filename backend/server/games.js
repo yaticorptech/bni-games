@@ -231,19 +231,6 @@ const GAMES = [
     },
   },
   {
-    id: 'pictionary',
-    name: 'Emoji Pictionary',
-    emoji: '🎭',
-    color: '#ec4899',
-    tagline: 'Guess the profession from the emojis!',
-    duration: '10 puzzles',
-    howTo: ['Two emojis describe a profession — 🦷🪥 is a dentist', 'Tap the right one within 8 seconds', 'Correct = 50 points + up to 50 for speed'],
-    minMs: 0,
-    start: pictionary.start,
-    steps: pictionary.steps,
-    score: pictionary.score,
-  },
-  {
     id: 'simon',
     name: 'Handshake Sequence',
     emoji: '🎵',
@@ -276,6 +263,19 @@ const GAMES = [
       if (correct + wrong > 100) throw invalid('too many answers');
       return { score: clamp(correct * 35 - wrong * 15, 0, MAX), meta: { correct, wrong } };
     },
+  },
+  {
+    id: 'pictionary',
+    name: 'Emoji Pictionary',
+    emoji: '🎭',
+    color: '#ec4899',
+    tagline: 'Guess the profession from the emojis!',
+    duration: '10 puzzles',
+    howTo: ['Two emojis describe a profession — 🦷🪥 is a dentist', 'Tap the right one within 8 seconds', 'Correct = 50 points + up to 50 for speed'],
+    minMs: 0,
+    start: pictionary.start,
+    steps: pictionary.steps,
+    score: pictionary.score,
   },
   {
     // Hosted: the organiser asks questions on the big screen (see state.js askLive); phones
