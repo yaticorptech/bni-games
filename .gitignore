@@ -1,5 +1,6 @@
 node_modules/
 .env
+.env*
 backend/data/*.json
 backend/data/*.tmp
 .vercel
